@@ -1,0 +1,20 @@
+// GEOTrac Android library build script helpers
+
+def releaseFilePath = System.getProperty("user.dir") + "/_release.mode"
+ext.isReleaseMode = file(releaseFilePath).exists()
+
+def determineVersion(String baseVersion)
+{
+    return isReleaseMode ? baseVersion : baseVersion + "-SNAPSHOT"
+}
+
+def getPublishUrl()
+{
+    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode ? "releases" : "snapshots")
+}
+
+// Export methods by turning them into closures
+ext {
+    determineVersion = this.&determineVersion
+    getPublishUrl = this.&getPublishUrl
+}
