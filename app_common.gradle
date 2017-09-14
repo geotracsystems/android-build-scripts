@@ -129,7 +129,7 @@ def getVersionCode(int defaultCode)
 
         def String buildNumber = versionProps['build.number']
 
-        return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber)
+        return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
     }
     else
     {
