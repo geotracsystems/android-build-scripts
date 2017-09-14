@@ -109,8 +109,37 @@ def getVersionName(String version, int betaNumber)
     }
 }
 
+def getVersionCode(int defaultCode)
+{
+    def versionPropsFile = file('version.properties')
+
+    if(!versionPropsFile.exists())
+    {
+        return defaultCode
+    }
+
+    if(versionPropsFile.canRead())
+    {
+        def Properties versionProps = new Properties()
+
+        // Load the properties, and then release the file handle
+        def versionFileStream = new FileInputStream(versionPropsFile)
+        versionProps.load(versionFileStream)
+        versionFileStream.close()
+
+        def String buildNumber = versionProps['build.number']
+
+        return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber)
+    }
+    else
+    {
+        throw new GradleException("Could not read version.properties!")
+    }
+}
+
 // Export methods by turning them into closures
 ext {
+    getVersionCode = this.&getVersionCode
     getVersionName = this.&getVersionName
     getGitHash = this.&getGitHash
     getGitBranch = this.&getGitBranch
