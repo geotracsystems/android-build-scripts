@@ -48,15 +48,19 @@ def getGitDirty()
     return !stdout.toString().trim().isEmpty()
 }
 
-def determineBuildType(String branch, String tag)
+def determineBuildType(String branch)
 {
-    if(branch.startsWith("version/") && tag.startsWith("beta/"))
+    // We use git flow - http://nvie.com/posts/a-successful-git-branching-model/
+    // The defaults use release/, hotfix/, etc instead of release- and hotfix- mentioned above
+    if(branch.equals("master"))
     {
-        return "beta"
-    }
-    else if(branch.startsWith("version/") && tag.startsWith("release/"))
-    {
+        //Our only releases are on master
         return "release"
+    }
+    else if(branch.startsWith("release/") || branch.startsWith("hotfix/"))
+    {
+        //Both releases and hotfixes are prereleases - a new version that will show up as a full release later
+        return "prerelease"
     }
     else
     {
@@ -84,7 +88,7 @@ def getVersionName(String version, int betaNumber)
 
     if(!versionPropsFile.exists())
     {
-        def buildType = determineBuildType(getGitBranch(), getGitTag());
+        def buildType = determineBuildType(getGitBranch());
 
         return generateVersionName(version, getGitHash(), buildType, betaNumber, getGitDirty())
     }
