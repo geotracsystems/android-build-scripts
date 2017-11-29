@@ -68,21 +68,17 @@ def determineBuildType(String branch)
     }
 }
 
-def generateVersionName(String version, String commitHash, String buildType, int betaNumber, Boolean isDirty)
+def generateVersionName(String version, String commitHash, String buildType, Boolean isDirty)
 {
     def versionName = version + "-" + buildType
-
-    if(buildType.equals("beta"))
-    {
-        versionName += betaNumber
-    }
 
     versionName += "-" + commitHash.substring(0, 7)
 
     return isDirty ? versionName + "-dirty" : versionName
 }
 
-def getVersionName(String version, int betaNumber)
+// Unused second parameter is because of old scripts using beta numbers
+def getVersionName(String version, int unusedBetaNumber=0)
 {
     def versionPropsFile = file('version.properties')
 
@@ -90,7 +86,7 @@ def getVersionName(String version, int betaNumber)
     {
         def buildType = determineBuildType(getGitBranch());
 
-        return generateVersionName(version, getGitHash(), buildType, betaNumber, getGitDirty())
+        return generateVersionName(version, getGitHash(), buildType, getGitDirty())
     }
 
     if(versionPropsFile.canRead())
@@ -105,7 +101,7 @@ def getVersionName(String version, int betaNumber)
         def hash = versionProps['git.commit'].toString().trim()
         def buildType = versionProps['build.type'].toString().trim()
 
-        return generateVersionName(version, hash, buildType, betaNumber, false)
+        return generateVersionName(version, hash, buildType, false)
     }
     else
     {
