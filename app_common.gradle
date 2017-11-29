@@ -37,7 +37,7 @@ String getProperty(String key, String defaultValue)
     return getBuildServerProperty(key).trim()
 }
 
-def getGitHash()
+String getGitHash()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -48,7 +48,7 @@ def getGitHash()
     return stdout.toString().trim()
 }
 
-def getGitBranch()
+String getGitBranch()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -59,7 +59,7 @@ def getGitBranch()
     return stdout.toString().trim()
 }
 
-def getGitTag()
+String getGitTag()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -74,7 +74,7 @@ def getGitTag()
     return stdout.toString().trim()
 }
 
-def getGitDirty()
+Boolean getGitDirty()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -85,7 +85,7 @@ def getGitDirty()
     return !stdout.toString().trim().isEmpty()
 }
 
-def determineBuildType(String branch)
+String determineBuildType(String branch)
 {
     // We use git flow - http://nvie.com/posts/a-successful-git-branching-model/
     // The defaults use release/, hotfix/, etc instead of release- and hotfix- mentioned above
@@ -105,7 +105,7 @@ def determineBuildType(String branch)
     }
 }
 
-def generateVersionName(String version, String commitHash, String buildType, Boolean isDirty)
+String generateVersionName(String version, String commitHash, String buildType, Boolean isDirty)
 {
     def versionName = version + "-" + buildType
 
@@ -115,7 +115,7 @@ def generateVersionName(String version, String commitHash, String buildType, Boo
 }
 
 // Unused second parameter is because of old scripts using beta numbers
-def getVersionName(String version, int unusedBetaNumber=0)
+String getVersionName(String version, int unusedBetaNumber=0)
 {
     def hash = getProperty('git.commit', getGitHash())
     def buildType = determineBuildType(getProperty('git.branch', getGitBranch()))
@@ -123,7 +123,7 @@ def getVersionName(String version, int unusedBetaNumber=0)
     return generateVersionName(version, hash, buildType, isBuildServer() ? false : getGitDirty())
 }
 
-def getVersionCode(int defaultCode)
+int getVersionCode(int defaultCode)
 {
     def buildNumber = getProperty('build.number', defaultCode)
 
