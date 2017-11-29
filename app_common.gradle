@@ -17,7 +17,7 @@ def getBuildServerProperty(String key)
 
     if(!project.serverPropertiesFile.canRead())
     {
-        throw new GradleException("Could not read version.properties!")
+        throw new GradleException("Could not read build server properties file " + project.serverPropertiesFile.toString())
     }
 
     def Properties serverProperties = new Properties()
