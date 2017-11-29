@@ -22,14 +22,14 @@ String getBuildServerProperty(String key)
     serverProperties.load(versionFileStream)
     versionFileStream.close()
 
-    return serverProperties[key]
+    return serverProperties[key].trim()
 }
 
 String getProperty(String key, String defaultValue)
 {
     if(!isBuildServer()) return defaultValue;
 
-    return getBuildServerProperty(key).trim()
+    return getBuildServerProperty(key)
 }
 
 String getGitHash()
