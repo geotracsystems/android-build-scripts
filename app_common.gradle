@@ -74,7 +74,7 @@ String getGitTag()
     return stdout.toString().trim()
 }
 
-Boolean getGitDirty()
+Boolean isGitDirty()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -120,7 +120,7 @@ String getVersionName(String version, int unusedBetaNumber=0)
     def hash = getProperty('git.commit', getGitHash())
     def buildType = determineBuildType(getProperty('git.branch', getGitBranch()))
 
-    return generateVersionName(version, hash, buildType, isBuildServer() ? false : getGitDirty())
+    return generateVersionName(version, hash, buildType, isBuildServer() ? false : isGitDirty())
 }
 
 int getVersionCode(int defaultCode)
