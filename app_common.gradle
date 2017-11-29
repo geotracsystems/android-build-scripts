@@ -25,9 +25,9 @@ String getBuildServerProperty(String key)
     return serverProperties[key].trim()
 }
 
-String getProperty(String key, String defaultValue)
+String getProperty(String key, Closure<String> funcToGetDefault)
 {
-    if(!isBuildServer()) return defaultValue;
+    if(!isBuildServer()) return funcToGetDefault.call();
 
     return getBuildServerProperty(key)
 }
@@ -112,15 +112,15 @@ String generateVersionName(String version, String commitHash, String buildType, 
 // Unused second parameter is because of old scripts using beta numbers
 String getVersionName(String version, int unusedBetaNumber=0)
 {
-    def hash = getProperty('git.commit', getGitHash())
-    def buildType = determineBuildType(getProperty('git.branch', getGitBranch()))
+    def hash = getProperty('git.commit', { getGitHash() })
+    def buildType = determineBuildType(getProperty('git.branch', { getGitBranch() }))
 
     return generateVersionName(version, hash, buildType, isBuildServer() ? false : isGitDirty())
 }
 
 int getVersionCode(int defaultCode)
 {
-    def buildNumber = getProperty('build.number', defaultCode)
+    def buildNumber = getProperty('build.number', { return defaultCode })
 
     return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
 }
