@@ -1,5 +1,12 @@
 // GEOTrac Android build script helpers
 
+project.ext.serverPropertiesFile = file('version.properties')
+
+Boolean isBuildServer()
+{
+    return project.serverPropertiesFile.exists()
+}
+
 def getGitHash()
 {
     def stdout = new ByteArrayOutputStream()
@@ -80,21 +87,19 @@ def generateVersionName(String version, String commitHash, String buildType, Boo
 // Unused second parameter is because of old scripts using beta numbers
 def getVersionName(String version, int unusedBetaNumber=0)
 {
-    def versionPropsFile = file('version.properties')
-
-    if(!versionPropsFile.exists())
+    if(!isBuildServer())
     {
         def buildType = determineBuildType(getGitBranch());
 
         return generateVersionName(version, getGitHash(), buildType, getGitDirty())
     }
 
-    if(versionPropsFile.canRead())
+    if(project.serverPropertiesFile.canRead())
     {
         def Properties versionProps = new Properties()
 
         // Load the properties, and then release the file handle
-        def versionFileStream = new FileInputStream(versionPropsFile)
+        def versionFileStream = new FileInputStream(project.serverPropertiesFile)
         versionProps.load(versionFileStream)
         versionFileStream.close()
 
@@ -111,19 +116,17 @@ def getVersionName(String version, int unusedBetaNumber=0)
 
 def getVersionCode(int defaultCode)
 {
-    def versionPropsFile = file('version.properties')
-
-    if(!versionPropsFile.exists())
+    if(!isBuildServer())
     {
         return defaultCode
     }
 
-    if(versionPropsFile.canRead())
+    if(project.serverPropertiesFile.canRead())
     {
         def Properties versionProps = new Properties()
 
         // Load the properties, and then release the file handle
-        def versionFileStream = new FileInputStream(versionPropsFile)
+        def versionFileStream = new FileInputStream(project.serverPropertiesFile)
         versionProps.load(versionFileStream)
         versionFileStream.close()
 
