@@ -10,11 +10,6 @@ Boolean isBuildServer()
 //The build server writes some data to a file that we can make use of
 String getBuildServerProperty(String key)
 {
-    if(!isBuildServer())
-    {
-        throw new GradleException("Unable to retrieve build server variable since this isn't a build server!")
-    }
-
     if(!project.serverPropertiesFile.canRead())
     {
         throw new GradleException("Could not read build server properties file " + project.serverPropertiesFile.toString())
