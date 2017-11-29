@@ -7,6 +7,29 @@ Boolean isBuildServer()
     return project.serverPropertiesFile.exists()
 }
 
+//The build server writes some data to a file that we can make use of
+def getBuildServerProperty(String key)
+{
+    if(!isBuildServer())
+    {
+        throw new GradleException("Unable to retrieve build server variable since this isn't a build server!")
+    }
+
+    if(!project.serverPropertiesFile.canRead())
+    {
+        throw new GradleException("Could not read version.properties!")
+    }
+
+    def Properties serverProperties = new Properties()
+
+    // Load the properties, and then release the file handle
+    def versionFileStream = new FileInputStream(project.serverPropertiesFile)
+    serverProperties.load(versionFileStream)
+    versionFileStream.close()
+
+    return serverProperties[key]
+}
+
 def getGitHash()
 {
     def stdout = new ByteArrayOutputStream()
@@ -94,24 +117,10 @@ def getVersionName(String version, int unusedBetaNumber=0)
         return generateVersionName(version, getGitHash(), buildType, getGitDirty())
     }
 
-    if(project.serverPropertiesFile.canRead())
-    {
-        def Properties versionProps = new Properties()
+    def hash = getBuildServerProperty('git.commit').toString().trim()
+    def buildType = getBuildServerProperty('build.type').toString().trim()
 
-        // Load the properties, and then release the file handle
-        def versionFileStream = new FileInputStream(project.serverPropertiesFile)
-        versionProps.load(versionFileStream)
-        versionFileStream.close()
-
-        def hash = versionProps['git.commit'].toString().trim()
-        def buildType = versionProps['build.type'].toString().trim()
-
-        return generateVersionName(version, hash, buildType, false)
-    }
-    else
-    {
-        throw new GradleException("Could not read version.properties!")
-    }
+    return generateVersionName(version, hash, buildType, false)
 }
 
 def getVersionCode(int defaultCode)
@@ -121,23 +130,9 @@ def getVersionCode(int defaultCode)
         return defaultCode
     }
 
-    if(project.serverPropertiesFile.canRead())
-    {
-        def Properties versionProps = new Properties()
+    def buildNumber = getBuildServerProperty('build.number').toString().trim()
 
-        // Load the properties, and then release the file handle
-        def versionFileStream = new FileInputStream(project.serverPropertiesFile)
-        versionProps.load(versionFileStream)
-        versionFileStream.close()
-
-        def String buildNumber = versionProps['build.number']
-
-        return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
-    }
-    else
-    {
-        throw new GradleException("Could not read version.properties!")
-    }
+    return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
 }
 
 // Export methods by turning them into closures
