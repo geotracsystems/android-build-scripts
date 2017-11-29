@@ -8,7 +8,7 @@ Boolean isBuildServer()
 }
 
 //The build server writes some data to a file that we can make use of
-def getBuildServerProperty(String key)
+String getBuildServerProperty(String key)
 {
     if(!isBuildServer())
     {
@@ -117,8 +117,8 @@ def getVersionName(String version, int unusedBetaNumber=0)
         return generateVersionName(version, getGitHash(), buildType, getGitDirty())
     }
 
-    def hash = getBuildServerProperty('git.commit').toString().trim()
-    def buildType = getBuildServerProperty('build.type').toString().trim()
+    def hash = getBuildServerProperty('git.commit').trim()
+    def buildType = getBuildServerProperty('build.type').trim()
 
     return generateVersionName(version, hash, buildType, false)
 }
@@ -130,7 +130,7 @@ def getVersionCode(int defaultCode)
         return defaultCode
     }
 
-    def buildNumber = getBuildServerProperty('build.number').toString().trim()
+    def buildNumber = getBuildServerProperty('build.number').trim()
 
     return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
 }
