@@ -30,6 +30,13 @@ String getBuildServerProperty(String key)
     return serverProperties[key]
 }
 
+String getProperty(String key, String defaultValue)
+{
+    if(!isBuildServer()) return defaultValue;
+
+    return getBuildServerProperty(key).trim()
+}
+
 def getGitHash()
 {
     def stdout = new ByteArrayOutputStream()
@@ -110,27 +117,15 @@ def generateVersionName(String version, String commitHash, String buildType, Boo
 // Unused second parameter is because of old scripts using beta numbers
 def getVersionName(String version, int unusedBetaNumber=0)
 {
-    if(!isBuildServer())
-    {
-        def buildType = determineBuildType(getGitBranch());
+    def hash = getProperty('git.commit', getGitHash())
+    def buildType = getProperty('build.type', determineBuildType(getGitBranch()))
 
-        return generateVersionName(version, getGitHash(), buildType, getGitDirty())
-    }
-
-    def hash = getBuildServerProperty('git.commit').trim()
-    def buildType = getBuildServerProperty('build.type').trim()
-
-    return generateVersionName(version, hash, buildType, false)
+    return generateVersionName(version, hash, buildType, isBuildServer() ? false : getGitDirty())
 }
 
 def getVersionCode(int defaultCode)
 {
-    if(!isBuildServer())
-    {
-        return defaultCode
-    }
-
-    def buildNumber = getBuildServerProperty('build.number').trim()
+    def buildNumber = getProperty('build.number', defaultCode)
 
     return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
 }
