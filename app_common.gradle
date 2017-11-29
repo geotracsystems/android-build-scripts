@@ -118,7 +118,7 @@ def generateVersionName(String version, String commitHash, String buildType, Boo
 def getVersionName(String version, int unusedBetaNumber=0)
 {
     def hash = getProperty('git.commit', getGitHash())
-    def buildType = getProperty('build.type', determineBuildType(getGitBranch()))
+    def buildType = determineBuildType(getProperty('git.branch', getGitBranch()))
 
     return generateVersionName(version, hash, buildType, isBuildServer() ? false : getGitDirty())
 }
