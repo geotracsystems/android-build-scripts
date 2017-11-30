@@ -1,6 +1,72 @@
 // GEOTrac Android build script helpers
 
-def getGitHash()
+enum BuildType {
+    DEVELOPMENT("dev"), BETA("beta"), RELEASE("release")
+
+    BuildType(String displayName) { this.displayName = displayName }
+    private final String displayName;
+    public String toString() { return displayName }
+    
+    public static fromBranch(String branch) {
+        // We use git flow - http://nvie.com/posts/a-successful-git-branching-model/
+        // The defaults use release/, hotfix/, etc instead of release- and hotfix- mentioned above
+        if(branch.equals("master"))
+        {
+            //Our only releases are on master
+            return BuildType.RELEASE
+        }
+        else if(branch.startsWith("release/") || branch.startsWith("hotfix/"))
+        {
+            //Both releases and hotfixes are prereleases - a new version that will show up as a full release later
+            return BuildType.BETA
+        }
+        else
+        {
+            return BuildType.DEVELOPMENT
+        }
+    }
+}
+
+project.ext.serverPropertiesFile = file('version.properties')
+
+Boolean isBuildServer()
+{
+    //Only the server should actually define this file
+    return project.serverPropertiesFile.exists()
+}
+
+//The build server writes some data to a file that we can make use of
+String getBuildServerProperty(String key)
+{
+    if(!project.serverPropertiesFile.canRead())
+    {
+        throw new GradleException("Could not read build server properties file " + project.serverPropertiesFile.toString())
+    }
+
+    def Properties serverProperties = new Properties()
+
+    // Load the properties, and then release the file handle
+    def versionFileStream = new FileInputStream(project.serverPropertiesFile)
+    serverProperties.load(versionFileStream)
+    versionFileStream.close()
+
+    //Get rid of empty space, and if we end up with nothing left, that's a problem!
+    def value = serverProperties[key]?.trim()
+    if(value == "") throw new GradleException(key + " is defined, but has an empty string!")
+
+    return value
+}
+
+String getProperty(String key, Closure<String> funcToGetDefault)
+{
+    def serverValue = isBuildServer() ? getBuildServerProperty(key) : null
+
+    //Using a closure allows for lazy evaluation, in case the function doesn't work on the build server
+    //This is true for anything that tries to use git, for example, since the build server uses only the working directory
+    return serverValue ?: funcToGetDefault.call()
+}
+
+String getGitHash()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -8,10 +74,11 @@ def getGitHash()
         standardOutput = stdout
     }
 
+    //Output will look like: cfd998043fe86f3f1f2320512d6aabb51bfb5059
     return stdout.toString().trim()
 }
 
-def getGitBranch()
+String getGitBranch()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -19,14 +86,15 @@ def getGitBranch()
         standardOutput = stdout
     }
 
+    //Output will look like: master
     return stdout.toString().trim()
 }
 
-def getGitTag()
+String getGitTag()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
-        commandLine 'git', 'describe', '--tag'
+        commandLine 'git', 'describe', '--tag', '--exact-match'
         standardOutput = stdout
 
         // Ignore errors
@@ -34,10 +102,12 @@ def getGitTag()
         ignoreExitValue true
     }
 
+    //Output will look like: 1.5.1
+    //String will be empty if there is no tag
     return stdout.toString().trim()
 }
 
-def getGitDirty()
+Boolean isGitDirty()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -45,96 +115,36 @@ def getGitDirty()
         standardOutput = stdout
     }
 
+    //Output is a list of files and whether they are added, removed, or modified
+    //There is no output if nothing is modified
     return !stdout.toString().trim().isEmpty()
 }
 
-def determineBuildType(String branch, String tag)
+String generateVersionName(String version, String commitHash, BuildType buildType, Boolean isDirty)
 {
-    if(branch.startsWith("version/") && tag.startsWith("beta/"))
-    {
-        return "beta"
-    }
-    else if(branch.startsWith("version/") && tag.startsWith("release/"))
-    {
-        return "release"
-    }
-    else
-    {
-        return "dev"
-    }
-}
+    def versionName = version
 
-def generateVersionName(String version, String commitHash, String buildType, int betaNumber, Boolean isDirty)
-{
-    def versionName = version + "-" + buildType
-
-    if(buildType.equals("beta"))
-    {
-        versionName += betaNumber
+    //Releases should produce a clean, recognizable output like 1.0
+    //Other builds should indicate what they are and where they came from, like 1.0-beta-1234aef
+    if(buildType != BuildType.RELEASE) {
+        versionName += "-" + buildType.toString() + "-" + commitHash.substring(0, 7)
     }
-
-    versionName += "-" + commitHash.substring(0, 7)
 
     return isDirty ? versionName + "-dirty" : versionName
 }
 
-def getVersionName(String version, int betaNumber)
+// Unused second parameter is because of old scripts using beta numbers
+String getVersionName(String version, int unusedBetaNumber=0)
 {
-    def versionPropsFile = file('version.properties')
+    def hash = getProperty('git.commit', { getGitHash() })
+    def buildType = BuildType.fromBranch(getProperty('git.branch', { getGitBranch() }))
 
-    if(!versionPropsFile.exists())
-    {
-        def buildType = determineBuildType(getGitBranch(), getGitTag());
-
-        return generateVersionName(version, getGitHash(), buildType, betaNumber, getGitDirty())
-    }
-
-    if(versionPropsFile.canRead())
-    {
-        def Properties versionProps = new Properties()
-
-        // Load the properties, and then release the file handle
-        def versionFileStream = new FileInputStream(versionPropsFile)
-        versionProps.load(versionFileStream)
-        versionFileStream.close()
-
-        def hash = versionProps['git.commit'].toString().trim()
-        def buildType = versionProps['build.type'].toString().trim()
-
-        return generateVersionName(version, hash, buildType, betaNumber, false)
-    }
-    else
-    {
-        throw new GradleException("Could not read version.properties!")
-    }
+    return generateVersionName(version, hash, buildType, isBuildServer() ? false : isGitDirty())
 }
 
-def getVersionCode(int defaultCode)
+int getVersionCode(int defaultCode)
 {
-    def versionPropsFile = file('version.properties')
-
-    if(!versionPropsFile.exists())
-    {
-        return defaultCode
-    }
-
-    if(versionPropsFile.canRead())
-    {
-        def Properties versionProps = new Properties()
-
-        // Load the properties, and then release the file handle
-        def versionFileStream = new FileInputStream(versionPropsFile)
-        versionProps.load(versionFileStream)
-        versionFileStream.close()
-
-        def String buildNumber = versionProps['build.number']
-
-        return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
-    }
-    else
-    {
-        throw new GradleException("Could not read version.properties!")
-    }
+    return Integer.parseInt(getProperty('build.number', { defaultCode }))
 }
 
 // Export methods by turning them into closures
