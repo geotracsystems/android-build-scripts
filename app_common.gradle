@@ -120,7 +120,7 @@ String getVersionName(String version, int unusedBetaNumber=0)
 
 int getVersionCode(int defaultCode)
 {
-    def buildNumber = getProperty('build.number', { return defaultCode })
+    def buildNumber = getProperty('build.number', { defaultCode })
 
     return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
 }
