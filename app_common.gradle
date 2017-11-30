@@ -22,7 +22,10 @@ String getBuildServerProperty(String key)
     serverProperties.load(versionFileStream)
     versionFileStream.close()
 
-    return serverProperties[key]?.trim()
+    def value = serverProperties[key]?.trim()
+    if(value == "") throw new GradleException(key + " is defined, but has an empty string!")
+
+    return value
 }
 
 String getProperty(String key, Closure<String> funcToGetDefault)
