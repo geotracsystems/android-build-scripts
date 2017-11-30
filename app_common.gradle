@@ -22,14 +22,14 @@ String getBuildServerProperty(String key)
     serverProperties.load(versionFileStream)
     versionFileStream.close()
 
-    return serverProperties[key].trim()
+    return serverProperties[key]?.trim()
 }
 
 String getProperty(String key, Closure<String> funcToGetDefault)
 {
-    if(!isBuildServer()) return funcToGetDefault.call();
+    def serverValue = isBuildServer() ? getBuildServerProperty(key) : null
 
-    return getBuildServerProperty(key)
+    return serverValue ?: funcToGetDefault.call()
 }
 
 String getGitHash()
@@ -122,7 +122,7 @@ int getVersionCode(int defaultCode)
 {
     def buildNumber = getProperty('build.number', { defaultCode })
 
-    return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber.trim())
+    return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber)
 }
 
 // Export methods by turning them into closures
