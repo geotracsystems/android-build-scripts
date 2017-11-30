@@ -31,6 +31,7 @@ project.ext.serverPropertiesFile = file('version.properties')
 
 Boolean isBuildServer()
 {
+    //Only the server should actually define this file
     return project.serverPropertiesFile.exists()
 }
 
@@ -49,6 +50,7 @@ String getBuildServerProperty(String key)
     serverProperties.load(versionFileStream)
     versionFileStream.close()
 
+    //Get rid of empty space, and if we end up with nothing left, that's a problem!
     def value = serverProperties[key]?.trim()
     if(value == "") throw new GradleException(key + " is defined, but has an empty string!")
 
@@ -59,6 +61,8 @@ String getProperty(String key, Closure<String> funcToGetDefault)
 {
     def serverValue = isBuildServer() ? getBuildServerProperty(key) : null
 
+    //Using a closure allows for lazy evaluation, in case the function doesn't work on the build server
+    //This is true for anything that tries to use git, for example, since the build server uses only the working directory
     return serverValue ?: funcToGetDefault.call()
 }
 
@@ -70,6 +74,7 @@ String getGitHash()
         standardOutput = stdout
     }
 
+    //Output will look like: cfd998043fe86f3f1f2320512d6aabb51bfb5059
     return stdout.toString().trim()
 }
 
@@ -81,6 +86,7 @@ String getGitBranch()
         standardOutput = stdout
     }
 
+    //Output will look like: master
     return stdout.toString().trim()
 }
 
@@ -96,6 +102,10 @@ String getGitTag()
         ignoreExitValue true
     }
 
+    //Output is variable
+    // If the current commit is tagged: 1.5.1 
+    // If the current commit is after a tagged commit: 1.5.1-6-g729cd8f
+    // Nothing if there are no tags prior to this commit
     return stdout.toString().trim()
 }
 
@@ -107,6 +117,8 @@ Boolean isGitDirty()
         standardOutput = stdout
     }
 
+    //Output is a list of files and whether they are added, removed, or modified
+    //There is no output if nothing is modified
     return !stdout.toString().trim().isEmpty()
 }
 
@@ -114,6 +126,8 @@ String generateVersionName(String version, String commitHash, BuildType buildTyp
 {
     def versionName = version
 
+    //Releases should produce a clean, recognizable output like 1.0
+    //Other builds should indicate what they are and where they came from, like 1.0-beta-1234aef
     if(buildType != BuildType.RELEASE) {
         versionName += "-" + buildType.toString() + "-" + commitHash.substring(0, 7)
     }
