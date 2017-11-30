@@ -94,7 +94,7 @@ String getGitTag()
 {
     def stdout = new ByteArrayOutputStream()
     exec {
-        commandLine 'git', 'describe', '--tag'
+        commandLine 'git', 'describe', '--tag', '--exact-match'
         standardOutput = stdout
 
         // Ignore errors
@@ -102,10 +102,8 @@ String getGitTag()
         ignoreExitValue true
     }
 
-    //Output is variable
-    // If the current commit is tagged: 1.5.1 
-    // If the current commit is after a tagged commit: 1.5.1-6-g729cd8f
-    // Nothing if there are no tags prior to this commit
+    //Output will look like: 1.5.1
+    //String will be empty if there is no tag
     return stdout.toString().trim()
 }
 
