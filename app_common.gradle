@@ -123,9 +123,7 @@ String getVersionName(String version, int unusedBetaNumber=0)
 
 int getVersionCode(int defaultCode)
 {
-    def buildNumber = getProperty('build.number', { defaultCode })
-
-    return (buildNumber == null || buildNumber == "") ? defaultCode : Integer.parseInt(buildNumber)
+    return Integer.parseInt(getProperty('build.number', { defaultCode }))
 }
 
 // Export methods by turning them into closures
