@@ -83,29 +83,37 @@ Boolean isGitDirty()
     return !stdout.toString().trim().isEmpty()
 }
 
-String determineBuildType(String branch)
+enum BuildType{
+    DEVELOPMENT("dev"), BETA("beta"), RELEASE("release")
+
+    BuildType(String displayName) { this.displayName = displayName }
+    private final String displayName;
+    public String toString() { return displayName }
+}
+
+BuildType determineBuildType(String branch)
 {
     // We use git flow - http://nvie.com/posts/a-successful-git-branching-model/
     // The defaults use release/, hotfix/, etc instead of release- and hotfix- mentioned above
     if(branch.equals("master"))
     {
         //Our only releases are on master
-        return "release"
+        return BuildType.RELEASE
     }
     else if(branch.startsWith("release/") || branch.startsWith("hotfix/"))
     {
         //Both releases and hotfixes are prereleases - a new version that will show up as a full release later
-        return "prerelease"
+        return BuildType.BETA
     }
     else
     {
-        return "dev"
+        return BuildType.DEVELOPMENT
     }
 }
 
-String generateVersionName(String version, String commitHash, String buildType, Boolean isDirty)
+String generateVersionName(String version, String commitHash, BuildType buildType, Boolean isDirty)
 {
-    def versionName = version + "-" + buildType
+    def versionName = version + "-" + buildType.toString()
 
     versionName += "-" + commitHash.substring(0, 7)
 
