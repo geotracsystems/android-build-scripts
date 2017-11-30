@@ -113,9 +113,11 @@ BuildType determineBuildType(String branch)
 
 String generateVersionName(String version, String commitHash, BuildType buildType, Boolean isDirty)
 {
-    def versionName = version + "-" + buildType.toString()
+    def versionName = version
 
-    versionName += "-" + commitHash.substring(0, 7)
+    if(buildType != BuildType.RELEASE) {
+        versionName += "-" + buildType.toString() + "-" + commitHash.substring(0, 7)
+    }
 
     return isDirty ? versionName + "-dirty" : versionName
 }
