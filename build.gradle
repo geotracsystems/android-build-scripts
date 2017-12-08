@@ -1,0 +1,5 @@
+apply from: "lib_common.gradle"
+
+task getLibraryVersion() {
+    println determineVersion("0.3.2")
+}
