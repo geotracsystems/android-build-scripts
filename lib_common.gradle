@@ -23,6 +23,41 @@ enum BuildType {
     }
 }
 
+project.ext.serverPropertiesFile = file('version.properties')
+
+Boolean isBuildServer() {
+    //Only the server should actually define this file
+    return project.serverPropertiesFile.exists()
+}
+
+//The build server writes some data to a file that we can make use of
+String getBuildServerProperty(String key) {
+    if (!project.serverPropertiesFile.canRead()) {
+        throw new GradleException("Could not read build server properties file " + project.serverPropertiesFile.toString())
+    }
+
+    def Properties serverProperties = new Properties()
+
+    // Load the properties, and then release the file handle
+    def versionFileStream = new FileInputStream(project.serverPropertiesFile)
+    serverProperties.load(versionFileStream)
+    versionFileStream.close()
+
+    //Get rid of empty space, and if we end up with nothing left, that's a problem!
+    def value = serverProperties[key]?.trim()
+    if (value == "") throw new GradleException(key + " is defined, but has an empty string!")
+
+    return value
+}
+
+String getProperty(String key, Closure<String> funcToGetDefault) {
+    def serverValue = isBuildServer() ? getBuildServerProperty(key) : null
+
+    //Using a closure allows for lazy evaluation, in case the function doesn't work on the build server
+    //This is true for anything that tries to use git, for example, since the build server uses only the working directory
+    return serverValue ?: funcToGetDefault.call()
+}
+
 String getGitBranch() {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -34,7 +69,7 @@ String getGitBranch() {
     return stdout.toString().trim()
 }
 
-ext.isReleaseMode = BuildType.fromBranch(getGitBranch()) == BuildType.RELEASE
+ext.isReleaseMode = BuildType.fromBranch(getProperty('git.branch', { getGitBranch() })) == BuildType.RELEASE
 
 def determineVersion(String baseVersion) {
     return isReleaseMode ? baseVersion : baseVersion + "-SNAPSHOT"
