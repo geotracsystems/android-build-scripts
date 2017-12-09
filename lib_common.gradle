@@ -93,7 +93,9 @@ String getGitBranch() {
     return stdout.toString().trim()
 }
 
-ext.isReleaseMode = BuildType.fromBranch(getProperty('git.branch', { getGitBranch() })) == BuildType.RELEASE
+ext.isReleaseMode = BuildType.fromBranch(getProperty('git.branch', {
+    getGitBranch()
+})) == BuildType.RELEASE
 
 def determineVersion(String baseVersion) {
 
