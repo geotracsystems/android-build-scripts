@@ -102,9 +102,17 @@ def determineVersion(String baseVersion) {
     return baseVersion + "-SNAPSHOT"
 }
 
-def getLibraryVersion(String baseVersion) {
+def getLibraryVersion(String semanticVersion) {
+    def branch = getProperty('git.branch', { getGitBranch() })
 
-    return new Version(baseVersion).toString() + "-SNAPSHOT"
+    switch (BuildType.fromBranch(branch)) {
+        case BuildType.RELEASE:
+            return new Version(semanticVersion).toString()
+        case BuildType.BETA:
+            return new Version(semanticVersion).toString() + "-SNAPSHOT"
+        case BuildType.DEVELOPMENT:
+            return branch + "-SNAPSHOT"
+    }
 }
 
 def getPublishUrl() {
