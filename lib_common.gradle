@@ -102,7 +102,7 @@ String getBranchKey(String branch) {
     def hyphenatedParts = branchName.split("-")
 
     if (hyphenatedParts.length >= 2 && hyphenatedParts[0] ==~ /[a-zA-Z]+/ && hyphenatedParts[1] ==~ /[0-9]+/) {
-        return hyphenatedParts[0] + "-" + hyphenatedParts[1]
+        return hyphenatedParts[0].toUpperCase() + "-" + hyphenatedParts[1]
     }
 
     return branchName
