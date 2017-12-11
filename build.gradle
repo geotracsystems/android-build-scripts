@@ -1,5 +1,24 @@
+apply plugin: "java"
+apply plugin: 'groovy'
 apply from: "lib_common.gradle"
 
 task getLibraryVersion() {
     println getLibraryVersion(Version(0, 3, 2))
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.codehaus.groovy:groovy-all:2.4.7'
+    }
+}
+
+dependencies {
+    testCompile(
+            gradleTestKit(),
+            'org.spockframework:spock-core:1.1-groovy-2.4'
+    )
 }
