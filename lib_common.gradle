@@ -104,14 +104,15 @@ def determineVersion(String baseVersion) {
 
 def getLibraryVersion(String semanticVersion) {
     def branch = getProperty('git.branch', { getGitBranch() })
+    def version = new Version(semanticVersion)
 
     switch (BuildType.fromBranch(branch)) {
         case BuildType.RELEASE:
-            return new Version(semanticVersion).toString()
+            return version.toString()
         case BuildType.BETA:
-            return new Version(semanticVersion).toString() + "-SNAPSHOT"
+            return version.toString() + "-SNAPSHOT"
         case BuildType.DEVELOPMENT:
-            return branch + "-SNAPSHOT"
+            return version.major + ".x-" + branch + "-SNAPSHOT"
     }
 }
 
