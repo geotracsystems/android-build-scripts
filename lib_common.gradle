@@ -93,6 +93,21 @@ String getGitBranch() {
     return stdout.toString().trim()
 }
 
+//Returns a branch key, like GAT-123, if available; otherwise, returns the branch name without its directories
+String getBranchKey(String branch) {
+    //Strip off any directories (e.g. feature/), taking the last string after a slash
+    def branchName = branch.split("/").last()
+
+    //Look at the first two hyphenated parts for a key, checking if the first part is all letters and the second part is all numbers
+    def hyphenatedParts = branchName.split("-")
+
+    if (hyphenatedParts.length >= 2 && hyphenatedParts[0] ==~ /[a-zA-Z]+/ && hyphenatedParts[1] ==~ /[0-9]+/) {
+        return hyphenatedParts[0] + "-" + hyphenatedParts[1]
+    }
+
+    return branchName
+}
+
 ext.isReleaseMode = BuildType.fromBranch(getProperty('git.branch', {
     getGitBranch()
 })) == BuildType.RELEASE
@@ -112,7 +127,12 @@ def getLibraryVersion(String semanticVersion) {
         case BuildType.BETA:
             return version.toString() + "-SNAPSHOT"
         case BuildType.DEVELOPMENT:
-            return version.major + ".x-" + branch + "-SNAPSHOT"
+            switch (branch) {
+                case "develop":
+                    return version.major + ".x-" + branch + "-SNAPSHOT"
+                default:
+                    return getBranchKey(branch) + "-SNAPSHOT"
+            }
     }
 }
 
