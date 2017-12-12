@@ -56,7 +56,7 @@ class LibraryNameTest extends Specification {
         getLibraryVersionRunner().buildAndFail()
     }
 
-    def "getLibraryVersionGetsCorrectVersionForDevelop"() {
+    def "Library version is correct for develop branch"() {
         given:
         setVersion("1.2.3")
         setBranch("develop")
@@ -68,7 +68,7 @@ class LibraryNameTest extends Specification {
         result.output.trim() == "1.x-develop-SNAPSHOT"
     }
 
-    def "getLibraryVersionGetsCorrectVersionForFeatureWithKey"() {
+    def "Library version is correct for feature branch with JIRA key (feature/<JIRA-Key>-<descriptor>)"() {
         given:
         setBranch("feature/GAT-123-text-that-should-be-cut-off")
 
@@ -79,7 +79,7 @@ class LibraryNameTest extends Specification {
         result.output.trim() == "GAT-123-SNAPSHOT"
     }
 
-    def "getLibraryVersionGetsCorrectVersionForNoPrefixWithKey"() {
+    def "Library version is correct for arbitrary branch with JIRA key (<JIRA-Key>-<Descriptor>)"() {
         given:
         setBranch("GGG-453-get-rid-of-this")
 
@@ -90,29 +90,7 @@ class LibraryNameTest extends Specification {
         result.output.trim() == "GGG-453-SNAPSHOT"
     }
 
-    def "getLibraryVersionArbitraryFeatureBranchFailsWithoutKey"() {
-        given:
-        setBranch("feature/some-arbitrary-name")
-
-        when:
-        getLibraryVersionExpectingFailure()
-
-        then:
-        notThrown UnexpectedBuildSuccess
-    }
-
-    def "getLibraryVersionArbitraryBranchFailsWithoutKey"() {
-        given:
-        setBranch("another-arbitrary-name")
-
-        when:
-        getLibraryVersionExpectingFailure()
-
-        then:
-        notThrown UnexpectedBuildSuccess
-    }
-
-    def "getLibraryVersionGetsCorrectVersionForReleaseBranch"() {
+    def "Library version is correct for release branch"() {
         given:
         setVersion("1.2")
         setBranch("release/1.2")
@@ -124,7 +102,7 @@ class LibraryNameTest extends Specification {
         result.output.trim() == "1.2.0-SNAPSHOT"
     }
 
-    def "getLibraryVersionGetsCorrectVersionForHotfixBranch"() {
+    def "Library version is correct for hotfix branch"() {
         given:
         setVersion("2.1.3")
         setBranch("hotfix/2.1.3")
@@ -136,7 +114,7 @@ class LibraryNameTest extends Specification {
         result.output.trim() == "2.1.3-SNAPSHOT"
     }
 
-    def "getLibraryVersionGetsCorrectVersionForMaster"() {
+    def "Library version is correct for master"() {
         given:
         setVersion("3.1.8")
         setBranch("master")
@@ -146,5 +124,27 @@ class LibraryNameTest extends Specification {
 
         then:
         result.output.trim() == "3.1.8"
+    }
+
+    def "Fail the build if a library version is requested for a feature branch without a JIRA key"() {
+        given:
+        setBranch("feature/some-arbitrary-name")
+
+        when:
+        getLibraryVersionExpectingFailure()
+
+        then:
+        notThrown UnexpectedBuildSuccess
+    }
+
+    def "Fail the build if a library version is requested for a dev branch without a JIRA key"() {
+        given:
+        setBranch("another-arbitrary-name")
+
+        when:
+        getLibraryVersionExpectingFailure()
+
+        then:
+        notThrown UnexpectedBuildSuccess
     }
 }
