@@ -7,6 +7,7 @@ class LibraryNameTest extends Specification {
     @Rule
     final TemporaryFolder testProjectDir = new TemporaryFolder()
     final String lib_common = System.getProperty("lib_common.gradle")
+    final String getLibraryVersionTask = "getLibraryVersion"
     File buildFile
     File serverPropertiesFile
 
@@ -25,7 +26,7 @@ class LibraryNameTest extends Specification {
             w << """
             apply from: "${lib_common}"
 
-            task getLibraryVersion() {
+            task ${getLibraryVersionTask}() {
                 println getLibraryVersion("${baseVersion}")
             }
         """
@@ -42,7 +43,7 @@ class LibraryNameTest extends Specification {
         //Use the -q flag so only our own result is returned, not the other Gradle outputs
         GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments('getLibraryVersion', '-q')
+                .withArguments(getLibraryVersionTask, '-q')
                 .build()
     }
 
