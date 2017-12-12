@@ -18,10 +18,10 @@ class LibraryNameTest extends Specification {
         testProjectDir.newFile('lib_common.gradle') << lib_common.text
 
         //Use an arbitrary starting version for tests that need to specify a version
-        makeGetLibraryVersionTask("0.3.1")
+        setVersion("0.3.1")
     }
 
-    def makeGetLibraryVersionTask(String baseVersion) {
+    def setVersion(String baseVersion) {
         //Build a basic Gradle file for testing
         //Overwrite if this has been called already
         buildFile.newWriter().withWriter { w ->
@@ -35,7 +35,13 @@ class LibraryNameTest extends Specification {
         }
     }
 
-    def runGetLibraryVersionTask() {
+    def setBranch(String branch) {
+        serverPropertiesFile << """
+            git.branch=${branch}
+        """
+    }
+
+    def getLibraryVersion() {
         //Use the -q flag so only our own result is returned, not the other Gradle outputs
         GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
@@ -43,27 +49,16 @@ class LibraryNameTest extends Specification {
                 .build()
     }
 
-    def setBranch(String branch) {
-        serverPropertiesFile << """
-            git.branch=${branch}
-        """
-    }
-
-    def assertOutput(def result, String expected) {
-        //Trim off the new line that Gradle will print
-        result.output.trim() == expected
-    }
-
     def "getLibraryVersionGetsCorrectVersionForDevelop"() {
         given:
-        makeGetLibraryVersionTask("1.2.3")
+        setVersion("1.2.3")
         setBranch("develop")
 
         when:
-        def result = runGetLibraryVersionTask()
+        def result = getLibraryVersion()
 
         then:
-        assertOutput(result, "1.x-develop-SNAPSHOT")
+        result.output.trim() == "1.x-develop-SNAPSHOT"
     }
 
     def "getLibraryVersionGetsCorrectVersionForFeatureWithKey"() {
@@ -71,10 +66,10 @@ class LibraryNameTest extends Specification {
         setBranch("feature/GAT-123-text-that-should-be-cut-off")
 
         when:
-        def result = runGetLibraryVersionTask()
+        def result = getLibraryVersion()
 
         then:
-        assertOutput(result, "GAT-123-SNAPSHOT")
+        result.output.trim() == "GAT-123-SNAPSHOT"
     }
 
     def "getLibraryVersionGetsCorrectVersionForNoPrefixWithKey"() {
@@ -82,10 +77,10 @@ class LibraryNameTest extends Specification {
         setBranch("GGG-453-get-rid-of-this")
 
         when:
-        def result = runGetLibraryVersionTask()
+        def result = getLibraryVersion()
 
         then:
-        assertOutput(result, "GGG-453-SNAPSHOT")
+        result.output.trim() == "GGG-453-SNAPSHOT"
     }
 
     def "getLibraryVersionGetsCorrectVersionForFeatureWithoutKey"() {
@@ -93,10 +88,10 @@ class LibraryNameTest extends Specification {
         setBranch("feature/some-arbitrary-name")
 
         when:
-        def result = runGetLibraryVersionTask()
+        def result = getLibraryVersion()
 
         then:
-        assertOutput(result, "some-arbitrary-name-SNAPSHOT")
+        result.output.trim() == "some-arbitrary-name-SNAPSHOT"
     }
 
     def "getLibraryVersionGetsCorrectVersionForNoPrefixWithoutKey"() {
@@ -104,45 +99,45 @@ class LibraryNameTest extends Specification {
         setBranch("another-arbitrary-name")
 
         when:
-        def result = runGetLibraryVersionTask()
+        def result = getLibraryVersion()
 
         then:
-        assertOutput(result, "another-arbitrary-name-SNAPSHOT")
+        result.output.trim() == "another-arbitrary-name-SNAPSHOT"
     }
 
     def "getLibraryVersionGetsCorrectVersionForReleaseBranch"() {
         given:
-        makeGetLibraryVersionTask("1.2")
+        setVersion("1.2")
         setBranch("release/1.2")
 
         when:
-        def result = runGetLibraryVersionTask()
+        def result = getLibraryVersion()
 
         then:
-        assertOutput(result, "1.2.0-SNAPSHOT")
+        result.output.trim() == "1.2.0-SNAPSHOT"
     }
 
     def "getLibraryVersionGetsCorrectVersionForHotfixBranch"() {
         given:
-        makeGetLibraryVersionTask("2.1.3")
+        setVersion("2.1.3")
         setBranch("hotfix/2.1.3")
 
         when:
-        def result = runGetLibraryVersionTask()
+        def result = getLibraryVersion()
 
         then:
-        assertOutput(result, "2.1.3-SNAPSHOT")
+        result.output.trim() == "2.1.3-SNAPSHOT"
     }
 
     def "getLibraryVersionGetsCorrectVersionForMaster"() {
         given:
-        makeGetLibraryVersionTask("3.1.8")
+        setVersion("3.1.8")
         setBranch("master")
 
         when:
-        def result = runGetLibraryVersionTask()
+        def result = getLibraryVersion()
 
         then:
-        assertOutput(result, "3.1.8")
+        result.output.trim() == "3.1.8"
     }
 }
