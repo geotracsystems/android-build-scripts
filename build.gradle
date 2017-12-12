@@ -12,7 +12,7 @@ configurations.all {
     }
 }
 
-test {
+tasks.withType(Test) {
     systemProperty 'lib_common.gradle', project.file('lib_common.gradle').getAbsolutePath()
 }
 
