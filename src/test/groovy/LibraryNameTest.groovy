@@ -17,14 +17,22 @@ class LibraryNameTest extends Specification {
         //Load the common script
         testProjectDir.newFile('lib_common.gradle') << lib_common.text
 
+        //Use an arbitrary starting version for tests that need to specify a version
+        makeGetLibraryVersionTask("0.3.1")
+    }
+
+    def makeGetLibraryVersionTask(String baseVersion) {
         //Build a basic Gradle file for testing
-        buildFile << """
+        //Overwrite if this has been called already
+        buildFile.newWriter().withWriter { w ->
+            w << """
             apply from: "lib_common.gradle"
 
             task getLibraryVersion() {
-                println getLibraryVersion("0.3.1")
+                println getLibraryVersion("${baseVersion}")
             }
         """
+        }
     }
 
     def runGetLibraryVersionTask() {
@@ -48,13 +56,14 @@ class LibraryNameTest extends Specification {
 
     def "getLibraryVersionGetsCorrectVersionForDevelop"() {
         given:
+        makeGetLibraryVersionTask("1.2.3")
         setBranch("develop")
 
         when:
         def result = runGetLibraryVersionTask()
 
         then:
-        assertOutput(result, "0.x-develop-SNAPSHOT")
+        assertOutput(result, "1.x-develop-SNAPSHOT")
     }
 
     def "getLibraryVersionGetsCorrectVersionForFeatureWithKey"() {
@@ -99,5 +108,41 @@ class LibraryNameTest extends Specification {
 
         then:
         assertOutput(result, "another-arbitrary-name-SNAPSHOT")
+    }
+
+    def "getLibraryVersionGetsCorrectVersionForReleaseBranch"() {
+        given:
+        makeGetLibraryVersionTask("1.2")
+        setBranch("release/1.2")
+
+        when:
+        def result = runGetLibraryVersionTask()
+
+        then:
+        assertOutput(result, "1.2.0-SNAPSHOT")
+    }
+
+    def "getLibraryVersionGetsCorrectVersionForHotfixBranch"() {
+        given:
+        makeGetLibraryVersionTask("2.1.3")
+        setBranch("hotfix/2.1.3")
+
+        when:
+        def result = runGetLibraryVersionTask()
+
+        then:
+        assertOutput(result, "2.1.3-SNAPSHOT")
+    }
+
+    def "getLibraryVersionGetsCorrectVersionForMaster"() {
+        given:
+        makeGetLibraryVersionTask("3.1.8")
+        setBranch("master")
+
+        when:
+        def result = runGetLibraryVersionTask()
+
+        then:
+        assertOutput(result, "3.1.8")
     }
 }
