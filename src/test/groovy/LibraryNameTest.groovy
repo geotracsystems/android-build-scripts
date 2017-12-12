@@ -6,16 +6,13 @@ import spock.lang.Specification
 class LibraryNameTest extends Specification {
     @Rule
     final TemporaryFolder testProjectDir = new TemporaryFolder()
-    final File lib_common = new File(System.getProperty("lib_common.gradle"))
+    final String lib_common = System.getProperty("lib_common.gradle")
     File buildFile
     File serverPropertiesFile
 
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
         serverPropertiesFile = testProjectDir.newFile('version.properties')
-
-        //Load the common script
-        testProjectDir.newFile('lib_common.gradle') << lib_common.text
 
         //Use an arbitrary starting version for tests that need to specify a version
         setVersion("0.3.1")
@@ -26,7 +23,7 @@ class LibraryNameTest extends Specification {
         //Overwrite if this has been called already
         buildFile.newWriter().withWriter { w ->
             w << """
-            apply from: "lib_common.gradle"
+            apply from: "${lib_common}"
 
             task getLibraryVersion() {
                 println getLibraryVersion("${baseVersion}")
