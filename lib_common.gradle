@@ -93,7 +93,7 @@ String getGitBranch() {
     return stdout.toString().trim()
 }
 
-//Returns a branch key, like GAT-123, if available; otherwise, returns the branch name without its directories
+//Returns a branch key, like GAT-123, if available; otherwise, returns null
 String getBranchKey(String branch) {
     //Strip off any directories (e.g. feature/), taking the last string after a slash
     def branchName = branch.split("/").last()
@@ -105,7 +105,13 @@ String getBranchKey(String branch) {
         return hyphenatedParts[0].toUpperCase() + "-" + hyphenatedParts[1]
     }
 
-    return branchName
+    return null
+}
+
+def assertNonNull(def value, String errorMessage) {
+    if (value == null) throw new GradleException(errorMessage)
+
+    value
 }
 
 ext.isReleaseMode = BuildType.fromBranch(getProperty('git.branch', {
@@ -131,7 +137,7 @@ def getLibraryVersion(String semanticVersion) {
                 case "develop":
                     return version.major + ".x-" + branch + "-SNAPSHOT"
                 default:
-                    return getBranchKey(branch) + "-SNAPSHOT"
+                    return assertNonNull(getBranchKey(branch), "Development branches must begin with a JIRA key!") + "-SNAPSHOT"
             }
     }
 }

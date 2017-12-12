@@ -1,4 +1,6 @@
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.UnexpectedBuildSuccess
+
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -39,12 +41,19 @@ class LibraryNameTest extends Specification {
         """
     }
 
-    def getLibraryVersion() {
+    def getLibraryVersionRunner() {
         //Use the -q flag so only our own result is returned, not the other Gradle outputs
         GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments(getLibraryVersionTask, '-q')
-                .build()
+    }
+
+    def getLibraryVersion() {
+        getLibraryVersionRunner().build()
+    }
+
+    def getLibraryVersionExpectingFailure() {
+        getLibraryVersionRunner().buildAndFail()
     }
 
     def "getLibraryVersionGetsCorrectVersionForDevelop"() {
@@ -81,26 +90,26 @@ class LibraryNameTest extends Specification {
         result.output.trim() == "GGG-453-SNAPSHOT"
     }
 
-    def "getLibraryVersionGetsCorrectVersionForFeatureWithoutKey"() {
+    def "getLibraryVersionArbitraryFeatureBranchFailsWithoutKey"() {
         given:
         setBranch("feature/some-arbitrary-name")
 
         when:
-        def result = getLibraryVersion()
+        getLibraryVersionExpectingFailure()
 
         then:
-        result.output.trim() == "some-arbitrary-name-SNAPSHOT"
+        notThrown UnexpectedBuildSuccess
     }
 
-    def "getLibraryVersionGetsCorrectVersionForNoPrefixWithoutKey"() {
+    def "getLibraryVersionArbitraryBranchFailsWithoutKey"() {
         given:
         setBranch("another-arbitrary-name")
 
         when:
-        def result = getLibraryVersion()
+        getLibraryVersionExpectingFailure()
 
         then:
-        result.output.trim() == "another-arbitrary-name-SNAPSHOT"
+        notThrown UnexpectedBuildSuccess
     }
 
     def "getLibraryVersionGetsCorrectVersionForReleaseBranch"() {
