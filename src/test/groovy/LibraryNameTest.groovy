@@ -4,6 +4,7 @@ import org.gradle.testkit.runner.UnexpectedBuildSuccess
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class LibraryNameTest extends Specification {
     @Rule
@@ -146,5 +147,21 @@ class LibraryNameTest extends Specification {
 
         then:
         notThrown UnexpectedBuildSuccess
+    }
+
+    @Unroll
+    def "Fail the build if a library version is requested for a non-semantic base version: #baseVersion"() {
+        given:
+        setVersion(baseVersion)
+        setBranch("master")
+
+        when:
+        getLibraryVersionExpectingFailure()
+
+        then:
+        notThrown UnexpectedBuildSuccess
+
+        where:
+        baseVersion << ['1', 'MOCOM-353', 'Test.Version', '1.Something.0', '1.2.3.4']
     }
 }
