@@ -16,6 +16,10 @@ configurations.all {
     }
 }
 
+test {
+    systemProperty 'lib_common.gradle', project.file('lib_common.gradle').getAbsolutePath()
+}
+
 dependencies {
     testCompile(
             gradleTestKit(),
