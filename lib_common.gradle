@@ -139,7 +139,9 @@ def getLibraryVersion(String semanticVersion) {
                 case "develop":
                     return version.major + ".x-" + branch + "-SNAPSHOT"
                 default:
-                    return assertNonNull(getBranchKey(branch), "Development branches must begin with a JIRA key!") + "-SNAPSHOT"
+                    def branchKey = getBranchKey(branch)
+                    assertNonNull(branchKey, "Development branches must begin with a JIRA key!")
+                    return branchKey + "-SNAPSHOT"
             }
     }
 }
