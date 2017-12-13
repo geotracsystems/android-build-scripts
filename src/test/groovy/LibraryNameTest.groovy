@@ -57,96 +57,147 @@ class LibraryNameTest extends Specification {
         getLibraryVersionRunner().buildAndFail()
     }
 
-    def "Library version is correct for develop branch"() {
+    @Unroll
+    def "Library version is correct for develop branch: #baseVersion"() {
         given:
-        setVersion("1.2.3")
+        setVersion(baseVersion)
         setBranch("develop")
 
         when:
         def result = getLibraryVersion()
 
         then:
-        result.output.trim() == "1.x-develop-SNAPSHOT"
+        result.output.trim() == majorVersion + ".x-develop-SNAPSHOT"
+
+        where:
+        baseVersion << ['1.2.3', '1.1', '4.2', '3.2.1']
+        majorVersion << ['1', '1', '4', '3']
     }
 
-    def "Library version is correct for feature branch with JIRA key (feature/<JIRA-Key>-<descriptor>)"() {
+    @Unroll
+    def "Library version is correct for feature branch with JIRA key: #branch"() {
         given:
-        setBranch("feature/GAT-123-text-that-should-be-cut-off")
+        setBranch(branch)
 
         when:
         def result = getLibraryVersion()
 
         then:
-        result.output.trim() == "GAT-123-SNAPSHOT"
+        result.output.trim() == jiraKey + "-SNAPSHOT"
+
+        where:
+        branch << ['feature/GAT-123-text-that-should-be-cut-off', 'feature/MOCOM-1212-arbitrary', 'feature/GIOCPIIA-1-description']
+        jiraKey << ['GAT-123', 'MOCOM-1212', 'GIOCPIIA-1']
     }
 
-    def "Library version is correct for arbitrary branch with JIRA key (<JIRA-Key>-<Descriptor>)"() {
+    @Unroll
+    def "Library version is correct for arbitrary branch with JIRA key: #branch"() {
         given:
-        setBranch("GGG-453-get-rid-of-this")
+        setBranch(branch)
 
         when:
         def result = getLibraryVersion()
 
         then:
-        result.output.trim() == "GGG-453-SNAPSHOT"
+        result.output.trim() == jiraKey + "-SNAPSHOT"
+
+        where:
+        branch << ['GGG-453-get-rid-of-this', 'GIOCP-123123-something', 'GA-9-short']
+        jiraKey << ['GGG-453', 'GIOCP-123123', 'GA-9']
     }
 
-    def "Library version is correct for release branch"() {
+    @Unroll
+    def "Library version correctly adds a zero for release branch: #baseVersion"() {
         given:
-        setVersion("1.2")
-        setBranch("release/1.2")
+        setVersion(baseVersion)
+        setBranch("release/" + baseVersion)
 
         when:
         def result = getLibraryVersion()
 
         then:
-        result.output.trim() == "1.2.0-SNAPSHOT"
+        result.output.trim() == baseVersion + ".0-SNAPSHOT"
+
+        where:
+        baseVersion << ['1.2', '3.1', '5.5']
     }
 
-    def "Library version is correct for hotfix branch"() {
+    @Unroll
+    def "Library version is correct for hotfix branch: #baseVersion"() {
         given:
-        setVersion("2.1.3")
-        setBranch("hotfix/2.1.3")
+        setVersion(baseVersion)
+        setBranch("hotfix/" + baseVersion)
 
         when:
         def result = getLibraryVersion()
 
         then:
-        result.output.trim() == "2.1.3-SNAPSHOT"
+        result.output.trim() == baseVersion + "-SNAPSHOT"
+
+        where:
+        baseVersion << ['2.1.3', '1.1.2', '4.0.1']
     }
 
-    def "Library version is correct for master"() {
+    @Unroll
+    def "Library version uses exact version when all three elements of a semantic version are provided on master: #baseVersion"() {
         given:
-        setVersion("3.1.8")
+        setVersion(baseVersion)
         setBranch("master")
 
         when:
         def result = getLibraryVersion()
 
         then:
-        result.output.trim() == "3.1.8"
+        result.output.trim() == baseVersion
+
+        where:
+        baseVersion << ['3.1.8', '1.0.1', '2.5.7']
     }
 
-    def "Fail the build if a library version is requested for a feature branch without a JIRA key"() {
+    @Unroll
+    def "Library version adds a zero when only two elements of a semantic version are provided on master: #baseVersion"() {
         given:
-        setBranch("feature/some-arbitrary-name")
+        setVersion(baseVersion)
+        setBranch("master")
+
+        when:
+        def result = getLibraryVersion()
+
+        then:
+        result.output.trim() == baseVersion + ".0"
+
+        where:
+        baseVersion << ['3.1', '1.0', '2.5']
+    }
+
+    @Unroll
+    def "Fail the build if a library version is requested for a feature branch without a JIRA key: #branch"() {
+        given:
+        setBranch(branch)
 
         when:
         getLibraryVersionExpectingFailure()
 
         then:
         notThrown UnexpectedBuildSuccess
+
+        where:
+        branch << ['feature/some-arbitrary-name', 'feature/GGA-12R-not-actually-a-key', 'feature/123-GAT-reversed', 'feature/GGA5-123-not-actually-a-key']
     }
 
-    def "Fail the build if a library version is requested for a dev branch without a JIRA key"() {
+    @Unroll
+    def "Fail the build if a library version is requested for a dev branch without a JIRA key: #branch"() {
         given:
-        setBranch("another-arbitrary-name")
+        setBranch(branch)
 
         when:
         getLibraryVersionExpectingFailure()
 
         then:
         notThrown UnexpectedBuildSuccess
+
+        where:
+        branch << ['another-arbitrary-name', 'GPA-56H-not-quite', '555-HTY-reversed-again', 'YTT4-424-still-not-right']
     }
 
     @Unroll
