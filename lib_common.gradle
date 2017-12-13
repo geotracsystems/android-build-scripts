@@ -118,6 +118,8 @@ ext.isReleaseMode = BuildType.fromBranch(getProperty('git.branch', {
     getGitBranch()
 })) == BuildType.RELEASE
 
+@Deprecated
+//Required for old builds to continue working
 def determineVersion(String baseVersion) {
 
     return baseVersion + "-SNAPSHOT"
