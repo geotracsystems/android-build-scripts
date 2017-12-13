@@ -23,16 +23,76 @@ enum BuildType {
     }
 }
 
-class Version {
+abstract class VersionFormatter {
+    abstract String print(LibraryVersion version)
+
+    public static VersionFormatter fromBranch(String branch) {
+        switch (BuildType.fromBranch(branch)) {
+            case BuildType.RELEASE:
+                return new ReleaseVersionFormatter()
+            case BuildType.BETA:
+                return new BetaVersionFormatter()
+            case BuildType.DEVELOPMENT:
+                switch (branch) {
+                    case "develop":
+                        return new DevelopVersionFormatter();
+                    default:
+                        return new FeatureVersionFormatter(branch);
+                }
+        }
+
+        //If we got here, something went terribly wrong
+        throw new GradleException("Unable to determine the version formatter for " + branch);
+    }
+}
+
+class DevelopVersionFormatter extends VersionFormatter {
+    public DevelopVersionFormatter() {}
+
+    public String print(LibraryVersion version) {
+        version.major + ".x-develop-SNAPSHOT"
+    }
+}
+
+class FeatureVersionFormatter extends VersionFormatter {
+    String jiraKey
+
+    public FeatureVersionFormatter(String branch) {
+        jiraKey = GitBranch.getJiraKey(branch)
+        Assert.nonNull(jiraKey, "Development branches must begin with a JIRA key!")
+    }
+
+    public String print(LibraryVersion version) {
+        jiraKey + "-SNAPSHOT"
+    }
+}
+
+class BetaVersionFormatter extends VersionFormatter {
+    public BetaVersionFormatter() {}
+
+    public String print(LibraryVersion version) {
+        version.toString() + "-SNAPSHOT"
+    }
+}
+
+class ReleaseVersionFormatter extends VersionFormatter {
+    public ReleaseVersionFormatter() {}
+
+    public String print(LibraryVersion version) {
+        version.toString()
+    }
+}
+
+class LibraryVersion {
     int major
     int minor
     int revision
 
-    public Version(String semanticVersion) {
+    public LibraryVersion(String semanticVersion) {
         def tokens = semanticVersion.split("\\.")
 
         if (tokens.length < 2 || tokens.length > 3) {
-            throw new GradleException("Version " + semanticVersion + " does not appear to be semantic - found " + tokens.length.toString() + " version numbers")
+            throw new GradleException("LibraryVersion " + semanticVersion + " does not appear to be semantic - found " + tokens.length.toString() + " version numbers")
         }
 
         major = Integer.parseInt(tokens[0])
@@ -93,25 +153,29 @@ String getGitBranch() {
     return stdout.toString().trim()
 }
 
-//Returns a branch key, like GAT-123, if available; otherwise, returns null
-String getBranchKey(String branch) {
-    //Strip off any directories (e.g. feature/), taking the last string after a slash
-    def branchName = branch.split("/").last()
+class GitBranch {
+    //Returns a branch key, like GAT-123, if available; otherwise, returns null
+    public static String getJiraKey(String branch) {
+        //Strip off any directories (e.g. feature/), taking the last string after a slash
+        def branchName = branch.split("/").last()
 
-    //Look at the first two hyphenated parts for a key, checking if the first part is all letters and the second part is all numbers
-    def hyphenatedParts = branchName.split("-")
+        //Look at the first two hyphenated parts for a key, checking if the first part is all letters and the second part is all numbers
+        def hyphenatedParts = branchName.split("-")
 
-    if (hyphenatedParts.length >= 2 && hyphenatedParts[0] ==~ /[a-zA-Z]+/ && hyphenatedParts[1] ==~ /[0-9]+/) {
-        return hyphenatedParts[0].toUpperCase() + "-" + hyphenatedParts[1]
+        if (hyphenatedParts.length >= 2 && hyphenatedParts[0] ==~ /[a-zA-Z]+/ && hyphenatedParts[1] ==~ /[0-9]+/) {
+            return hyphenatedParts[0].toUpperCase() + "-" + hyphenatedParts[1]
+        }
+
+        return null
     }
-
-    return null
 }
 
-def assertNonNull(def value, String errorMessage) {
-    if (value == null) throw new GradleException(errorMessage)
+class Assert {
+    public static def nonNull(def value, String errorMessage) {
+        if (value == null) throw new GradleException(errorMessage)
 
-    value
+        value
+    }
 }
 
 ext.isReleaseMode = BuildType.fromBranch(getProperty('git.branch', {
@@ -126,24 +190,9 @@ def determineVersion(String baseVersion) {
 }
 
 def getLibraryVersion(String semanticVersion) {
-    def branch = getProperty('git.branch', { getGitBranch() })
-    def version = new Version(semanticVersion)
-
-    switch (BuildType.fromBranch(branch)) {
-        case BuildType.RELEASE:
-            return version.toString()
-        case BuildType.BETA:
-            return version.toString() + "-SNAPSHOT"
-        case BuildType.DEVELOPMENT:
-            switch (branch) {
-                case "develop":
-                    return version.major + ".x-" + branch + "-SNAPSHOT"
-                default:
-                    def branchKey = getBranchKey(branch)
-                    assertNonNull(branchKey, "Development branches must begin with a JIRA key!")
-                    return branchKey + "-SNAPSHOT"
-            }
-    }
+    return VersionFormatter.fromBranch(getProperty('git.branch', {
+        getGitBranch()
+    })).print(new LibraryVersion(semanticVersion))
 }
 
 def getPublishUrl() {
