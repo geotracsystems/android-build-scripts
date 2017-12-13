@@ -91,6 +91,22 @@ class LibraryNameTest extends Specification {
     }
 
     @Unroll
+    def "Library version uses all uppercase for branch with JIRA key: #branch"() {
+        given:
+        setBranch(branch)
+
+        when:
+        def result = getLibraryVersion()
+
+        then:
+        result.output.trim() == jiraKey + "-SNAPSHOT"
+
+        where:
+        branch << ['feature/gat-123-text', 'feature/MocoM-1212-arbitrary', 'GioCPiiA-1-description', 'ga-9-short']
+        jiraKey << ['GAT-123', 'MOCOM-1212', 'GIOCPIIA-1', 'GA-9']
+    }
+
+    @Unroll
     def "Library version is correct for arbitrary branch with JIRA key: #branch"() {
         given:
         setBranch(branch)
