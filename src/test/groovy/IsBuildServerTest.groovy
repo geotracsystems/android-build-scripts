@@ -18,10 +18,10 @@ class IsBuildServerTest extends Specification {
         createBuildFile()
     }
 
-    def createBuildFile() {
+    def createBuildFile(File file = buildFile) {
         //Build a basic Gradle file for testing
         //Overwrite if this has been called already
-        buildFile.newWriter().withWriter { w ->
+        file.newWriter().withWriter { w ->
             w << """
             apply from: "${lib_common}"
 
@@ -47,6 +47,15 @@ class IsBuildServerTest extends Specification {
         isBuildServerRunner().buildAndFail()
     }
 
+    def createNestedGradleProject(String subprojectName) {
+        //Create the project
+        def builder = new FileTreeBuilder(testProjectDir.newFolder(subprojectName))
+        createBuildFile(builder.file("build.gradle"))
+
+        //Add the subproject to the gradle settings
+        testProjectDir.newFile('settings.gradle') << "include '${subprojectName}'"
+    }
+
     def "Presence of server properties file means we are a build server"() {
         given:
         serverPropertiesFile = testProjectDir.newFile('version.properties')
@@ -66,5 +75,32 @@ class IsBuildServerTest extends Specification {
 
         then:
         result.output.trim() == "false"
+    }
+
+    def "Nested build scripts know when they are running locally"() {
+        given:
+        createNestedGradleProject("nested")
+
+        and: "No server properties file created"
+
+        when:
+        def result = isBuildServer()
+
+        then:
+        result.output.trim() == "false\nfalse"
+    }
+
+    def "Nested build scripts know when they are on the build server"() {
+        given:
+        createNestedGradleProject("nested")
+
+        and:
+        serverPropertiesFile = testProjectDir.newFile('version.properties')
+
+        when:
+        def result = isBuildServer()
+
+        then:
+        result.output.trim() == "true\ntrue"
     }
 }
