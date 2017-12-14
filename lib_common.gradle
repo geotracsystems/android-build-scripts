@@ -23,9 +23,7 @@ enum BuildType {
     }
 }
 
-abstract class VersionFormatter {
-    abstract String print(LibraryVersion version)
-
+abstract class LibraryVersionFormatter {
     public static VersionFormatter fromBranch(String branch) {
         switch (BuildType.fromBranch(branch)) {
             case BuildType.RELEASE:
@@ -44,6 +42,25 @@ abstract class VersionFormatter {
         //If we got here, something went terribly wrong
         throw new GradleException("Unable to determine the version formatter for " + branch);
     }
+}
+
+abstract class DependencyVersionFormatter {
+    public static VersionFormatter fromBranch(String branch) {
+        switch (BuildType.fromBranch(branch)) {
+            case BuildType.RELEASE:
+            case BuildType.BETA:
+                return new ReleaseVersionFormatter()
+            case BuildType.DEVELOPMENT:
+                return new DevelopVersionFormatter();
+        }
+
+        //If we got here, something went terribly wrong
+        throw new GradleException("Unable to determine the version formatter for " + branch);
+    }
+}
+
+abstract class VersionFormatter {
+    abstract String print(LibraryVersion version)
 }
 
 class DevelopVersionFormatter extends VersionFormatter {
@@ -190,7 +207,13 @@ def determineVersion(String baseVersion) {
 }
 
 def getLibraryVersion(String semanticVersion) {
-    return VersionFormatter.fromBranch(getProperty('git.branch', {
+    return LibraryVersionFormatter.fromBranch(getProperty('git.branch', {
+        getGitBranch()
+    })).print(new LibraryVersion(semanticVersion))
+}
+
+def getDependencyVersion(String semanticVersion) {
+    return DependencyVersionFormatter.fromBranch(getProperty('git.branch', {
         getGitBranch()
     })).print(new LibraryVersion(semanticVersion))
 }
@@ -204,4 +227,5 @@ ext {
     determineVersion = this.&determineVersion
     getPublishUrl = this.&getPublishUrl
     getLibraryVersion = this.&getLibraryVersion
+    getDependencyVersion = this.&getDependencyVersion
 }
