@@ -195,9 +195,11 @@ class Assert {
     }
 }
 
-ext.isReleaseMode = BuildType.fromBranch(getProperty('git.branch', {
-    getGitBranch()
-})) == BuildType.RELEASE
+boolean isReleaseMode() {
+    BuildType.fromBranch(getProperty('git.branch', {
+        getGitBranch()
+    })) == BuildType.RELEASE
+}
 
 @Deprecated
 //Required for old builds to continue working
@@ -219,7 +221,7 @@ def getDependencyVersion(String semanticVersion) {
 }
 
 def getPublishUrl() {
-    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode ? "releases" : "snapshots")
+    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
 }
 
 // Export methods by turning them into closures
