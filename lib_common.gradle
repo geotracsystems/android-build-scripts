@@ -166,15 +166,17 @@ String getProperty(String key, Closure<String> funcToGetDefault) {
     return serverValue ?: funcToGetDefault.call()
 }
 
-String getGitBranch() {
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
-        standardOutput = stdout
-    }
+Closure<String> getGitBranch() {
+    return {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+            standardOutput = stdout
+        }
 
-    //Output will look like: master
-    return stdout.toString().trim()
+        //Output will look like: master
+        return stdout.toString().trim()
+    }
 }
 
 class GitBranch {
@@ -203,9 +205,7 @@ class Assert {
 }
 
 boolean isReleaseMode() {
-    BuildType.fromBranch(getProperty('git.branch', {
-        getGitBranch()
-    })) == BuildType.RELEASE
+    BuildType.fromBranch(getProperty('git.branch', getGitBranch())) == BuildType.RELEASE
 }
 
 @Deprecated
@@ -215,15 +215,11 @@ def determineVersion(String baseVersion) {
 }
 
 def getLibraryVersion(String semanticVersion) {
-    return LibraryVersionFormatter.fromBranch(getProperty('git.branch', {
-        getGitBranch()
-    })).print(new LibraryVersion(semanticVersion))
+    return LibraryVersionFormatter.fromBranch(getProperty('git.branch', getGitBranch())).print(new LibraryVersion(semanticVersion))
 }
 
 def getDependencyVersion(String semanticVersion) {
-    return DependencyVersionFormatter.fromBranch(getProperty('git.branch', {
-        getGitBranch()
-    })).print(new LibraryVersion(semanticVersion))
+    return DependencyVersionFormatter.fromBranch(getProperty('git.branch', getGitBranch())).print(new LibraryVersion(semanticVersion))
 }
 
 def getPublishUrl() {
