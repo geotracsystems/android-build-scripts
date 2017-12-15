@@ -126,7 +126,9 @@ class LibraryVersion {
 
 def getServerPropertiesFile() {
     def rootProject = project;
-    while(rootProject.parent) { rootProject = rootProject.parent }
+    while (rootProject.parent) {
+        rootProject = rootProject.parent
+    }
 
     rootProject.file('version.properties')
 }
@@ -209,7 +211,6 @@ boolean isReleaseMode() {
 @Deprecated
 //Required for old builds to continue working
 def determineVersion(String baseVersion) {
-
     return baseVersion + "-SNAPSHOT"
 }
 
