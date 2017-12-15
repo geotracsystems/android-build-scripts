@@ -87,7 +87,8 @@ class IsBuildServerTest extends Specification {
         def result = isBuildServer()
 
         then:
-        result.output.trim() == "false\nfalse"
+        final def NESTED_PROJECT = 1
+        result.output.trim().split("\\n").getAt(NESTED_PROJECT) == "false"
     }
 
     def "Nested build scripts know when they are on the build server"() {
@@ -101,6 +102,7 @@ class IsBuildServerTest extends Specification {
         def result = isBuildServer()
 
         then:
-        result.output.trim() == "true\ntrue"
+        final def NESTED_PROJECT = 1
+        result.output.trim().split("\\n").getAt(NESTED_PROJECT) == "true"
     }
 }
