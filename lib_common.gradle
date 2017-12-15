@@ -202,8 +202,12 @@ class Assert {
     }
 }
 
+String currentBranch() {
+    getProperty('git.branch', getGitBranch())
+}
+
 boolean isReleaseMode() {
-    BuildType.fromBranch(getProperty('git.branch', getGitBranch())) == BuildType.RELEASE
+    BuildType.fromBranch(currentBranch()) == BuildType.RELEASE
 }
 
 @Deprecated
@@ -213,11 +217,11 @@ def determineVersion(String baseVersion) {
 }
 
 def getLibraryVersion(String semanticVersion) {
-    return LibraryVersionFormatter.fromBranch(getProperty('git.branch', getGitBranch())).print(new LibraryVersion(semanticVersion))
+    return LibraryVersionFormatter.fromBranch(currentBranch()).print(new LibraryVersion(semanticVersion))
 }
 
 def getDependencyVersion(String semanticVersion) {
-    return DependencyVersionFormatter.fromBranch(getProperty('git.branch', getGitBranch())).print(new LibraryVersion(semanticVersion))
+    return DependencyVersionFormatter.fromBranch(currentBranch()).print(new LibraryVersion(semanticVersion))
 }
 
 def getPublishUrl() {
