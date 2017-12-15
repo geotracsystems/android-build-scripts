@@ -106,17 +106,21 @@ class LibraryVersion {
     int revision
 
     public LibraryVersion(String semanticVersion) {
-        def tokens = semanticVersion.split("\\.")
-
-        if (tokens.length < 2 || tokens.length > 3) {
-            throw new GradleException("LibraryVersion " + semanticVersion + " does not appear to be semantic - found " + tokens.length.toString() + " version numbers")
+        if (!isSemanticVersion(semanticVersion)) {
+            throw new GradleException("LibraryVersion " + semanticVersion + " does not appear to be semantic")
         }
 
-        major = Integer.parseInt(tokens[0])
-        minor = Integer.parseInt(tokens[1])
+        def tokens = semanticVersion.split("\\.")
+        major = tokens[0] as int
+        minor = tokens[1] as int
 
         //The revision is entirely optional
-        revision = tokens.length > 2 ? Integer.parseInt(tokens[2]) : 0
+        revision = tokens.length > 2 ? tokens[2] as int : 0
+    }
+
+    boolean isSemanticVersion(String version) {
+        //We expect to get versions like <major>.<minor> or <major>.<minor>.<revision>, and nothing else
+        version ==~ /[0-9]+\.[0-9]+\.?[0-9]*/
     }
 
     public String toString() {
