@@ -76,7 +76,6 @@ class FeatureVersionFormatter implements VersionFormatter {
 
     public FeatureVersionFormatter(String branch) {
         jiraKey = GitBranch.getJiraKey(branch)
-        Assert.nonNull(jiraKey, "Development branches must begin with a JIRA key!")
     }
 
     public String print(LibraryVersion version) {
@@ -192,11 +191,11 @@ class GitBranch {
         //Look at the first two hyphenated parts for a key, checking if the first part is all letters and the second part is all numbers
         def hyphenatedParts = branchName.split("-")
 
-        if (hyphenatedParts.length >= 2 && hyphenatedParts[0] ==~ /[a-zA-Z]+/ && hyphenatedParts[1] ==~ /[0-9]+/) {
-            return hyphenatedParts[0].toUpperCase() + "-" + hyphenatedParts[1]
+        if (hyphenatedParts.length < 2 || !(hyphenatedParts[0] ==~ /[a-zA-Z]+/ && hyphenatedParts[1] ==~ /[0-9]+/)) {
+            throw new GradleException("Feature branch " + branch + " does not begin with a JIRA key!")
         }
 
-        return null
+        return hyphenatedParts[0].toUpperCase() + "-" + hyphenatedParts[1]
     }
 }
 
