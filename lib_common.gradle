@@ -64,8 +64,6 @@ interface VersionFormatter {
 }
 
 class DevelopVersionFormatter implements VersionFormatter {
-    public DevelopVersionFormatter() {}
-
     public String print(LibraryVersion version) {
         version.major + ".x-develop-SNAPSHOT"
     }
@@ -84,16 +82,12 @@ class FeatureVersionFormatter implements VersionFormatter {
 }
 
 class BetaVersionFormatter implements VersionFormatter {
-    public BetaVersionFormatter() {}
-
     public String print(LibraryVersion version) {
         version.toString() + "-SNAPSHOT"
     }
 }
 
 class ReleaseVersionFormatter implements VersionFormatter {
-    public ReleaseVersionFormatter() {}
-
     public String print(LibraryVersion version) {
         version.toString()
     }
