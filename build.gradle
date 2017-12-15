@@ -1,0 +1,24 @@
+apply plugin: "java"
+apply plugin: 'groovy'
+apply from: "lib_common.gradle"
+
+repositories {
+    mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.codehaus.groovy:groovy-all:2.4.7'
+    }
+}
+
+tasks.withType(Test) {
+    systemProperty 'lib_common.gradle', project.file('lib_common.gradle').getAbsolutePath()
+}
+
+dependencies {
+    testCompile(
+            gradleTestKit(),
+            'org.spockframework:spock-core:1.1-groovy-2.4'
+    )
+}
