@@ -59,11 +59,11 @@ abstract class DependencyVersionFormatter {
     }
 }
 
-abstract class VersionFormatter {
-    abstract String print(LibraryVersion version)
+interface VersionFormatter {
+    String print(LibraryVersion version)
 }
 
-class DevelopVersionFormatter extends VersionFormatter {
+class DevelopVersionFormatter implements VersionFormatter {
     public DevelopVersionFormatter() {}
 
     public String print(LibraryVersion version) {
@@ -71,7 +71,7 @@ class DevelopVersionFormatter extends VersionFormatter {
     }
 }
 
-class FeatureVersionFormatter extends VersionFormatter {
+class FeatureVersionFormatter implements VersionFormatter {
     String jiraKey
 
     public FeatureVersionFormatter(String branch) {
@@ -84,7 +84,7 @@ class FeatureVersionFormatter extends VersionFormatter {
     }
 }
 
-class BetaVersionFormatter extends VersionFormatter {
+class BetaVersionFormatter implements VersionFormatter {
     public BetaVersionFormatter() {}
 
     public String print(LibraryVersion version) {
@@ -92,7 +92,7 @@ class BetaVersionFormatter extends VersionFormatter {
     }
 }
 
-class ReleaseVersionFormatter extends VersionFormatter {
+class ReleaseVersionFormatter implements VersionFormatter {
     public ReleaseVersionFormatter() {}
 
     public String print(LibraryVersion version) {
