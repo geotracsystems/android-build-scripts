@@ -36,7 +36,7 @@ def getServerPropertiesFile() {
     rootProject.file('version.properties')
 }
 
-Boolean isBuildServer() {
+boolean isBuildServer() {
     //Only the server should actually define this file
     return getServerPropertiesFile().exists()
 }
@@ -107,7 +107,7 @@ String getGitTag() {
     return stdout.toString().trim()
 }
 
-Boolean isGitDirty() {
+boolean isGitDirty() {
     def stdout = new ByteArrayOutputStream()
     exec {
         commandLine 'git', 'status', '-s'
