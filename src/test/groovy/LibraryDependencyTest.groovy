@@ -4,11 +4,12 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
+import groovy.json.StringEscapeUtils
 
 class LibraryDependencyTest extends Specification {
     @Rule
     final TemporaryFolder testProjectDir = new TemporaryFolder()
-    final String lib_common = System.getProperty("lib_common.gradle")
+    final String lib_common = StringEscapeUtils.escapeJava(System.getProperty("lib_common.gradle"))
     final String getDependencyVersionTask = "getDependencyVersion"
     File buildFile
     File serverPropertiesFile
