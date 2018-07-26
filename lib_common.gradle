@@ -32,6 +32,8 @@ abstract class LibraryVersionFormatter {
                 return new BetaVersionFormatter()
             case BuildType.DEVELOPMENT:
                 switch (branch) {
+                    case "HEAD":
+                        return new HeadVersionFormatter()
                     case "develop":
                         return new DevelopVersionFormatter();
                     default:
@@ -61,6 +63,14 @@ abstract class DependencyVersionFormatter {
 
 interface VersionFormatter {
     String print(LibraryVersion version)
+}
+
+class HeadVersionFormatter implements VersionFormatter {
+
+    @Override
+    String print(LibraryVersion version) {
+        return version.major + getGitHash()
+    }
 }
 
 class DevelopVersionFormatter implements VersionFormatter {
@@ -226,6 +236,17 @@ def getDependencyVersion(String semanticVersion) {
 
 def getPublishUrl() {
     return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+}
+
+String getGitHash() {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', 'HEAD'
+        standardOutput = stdout
+    }
+
+    //Output will look like: cfd998043fe86f3f1f2320512d6aabb51bfb5059
+    return stdout.toString().trim()
 }
 
 // Export methods by turning them into closures
