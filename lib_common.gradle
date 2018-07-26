@@ -34,6 +34,8 @@ abstract class LibraryVersionFormatter {
                 switch (branch) {
                     case "develop":
                         return new DevelopVersionFormatter();
+                    case "HEAD":
+                        return new HeadVersionFormatter();
                     default:
                         return new FeatureVersionFormatter(branch);
                 }
@@ -66,6 +68,12 @@ interface VersionFormatter {
 class DevelopVersionFormatter implements VersionFormatter {
     public String print(LibraryVersion version) {
         version.major + ".x-develop-SNAPSHOT"
+    }
+}
+
+class HeadVersionFormatter implements VersionFormatter {
+    public String print(LibraryVersion version) {
+        version.major + ".x-TEMP"
     }
 }
 
@@ -187,7 +195,8 @@ class GitBranch {
         def hyphenatedParts = branchName.split("-")
 
         if (hyphenatedParts.length < 2 || !(hyphenatedParts[0] ==~ /[a-zA-Z]+/ && hyphenatedParts[1] ==~ /[0-9]+/)) {
-            throw new GradleException("Feature branch " + branch + " does not begin with a JIRA key!")
+//            throw new GradleException("Feature branch " + branch + " does not begin with a JIRA key!")
+            return null
         }
 
         return hyphenatedParts[0].toUpperCase() + "-" + hyphenatedParts[1]
@@ -210,6 +219,10 @@ boolean isReleaseMode() {
     BuildType.fromBranch(currentBranch()) == BuildType.RELEASE
 }
 
+boolean isHead() {
+    return currentBranch() == "HEAD"
+}
+
 @Deprecated
 //Required for old builds to continue working
 def determineVersion(String baseVersion) {
@@ -225,7 +238,8 @@ def getDependencyVersion(String semanticVersion) {
 }
 
 def getPublishUrl() {
-    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+    // We don't want to allow publishing of HEAD commits
+    return isHead() ? null : "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
 }
 
 // Export methods by turning them into closures
