@@ -234,17 +234,13 @@ def getDependencyVersion(String semanticVersion) {
     return DependencyVersionFormatter.fromBranch(currentBranch()).print(new LibraryVersion(semanticVersion))
 }
 
-// check it the repo is at the proper commit being one of the following branch:
-// master, develop, release/(version name), feature/(JIRA key)(-optional description)
-def isValidForPublishing() {
-    return true
-}
-
 def getPublishUrl() {
-    if(isValidForPublishing()) {
-        return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+    def currentBranch = currentBranch()
+    if(currentBranch == "HEAD") {
+        throw new RuntimeException("Does NOT allow publish in HEAD branch")
     } else {
-        throw RuntimeException(currentBranch() + " is not valid for publishingå")
+        return "http://packages.geotracinternational.com/nexus/repository/maven-" +
+                ( BuildType.fromBranch(currentBranch) == BuildType.RELEASE ? "releases" : "snapshots")
     }
 }
 
