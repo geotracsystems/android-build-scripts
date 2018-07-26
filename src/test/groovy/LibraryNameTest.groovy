@@ -124,6 +124,23 @@ class LibraryNameTest extends Specification {
     }
 
     @Unroll
+    def "Library version is correct for arbitrary commit in HEAD branch: #HEAD"() {
+        given:
+        setVersion(baseVersion)
+        setBranch(branch)
+
+        when:
+        def result = getLibraryVersion()
+
+        then:
+        result.output.trim() == baseVersion + ".0-HEAD"
+
+        where:
+        branch << ['HEAD']
+        baseVersion << ['1.2']
+    }
+
+    @Unroll
     def "Library version correctly adds a zero for release branch: #baseVersion"() {
         given:
         setVersion(baseVersion)

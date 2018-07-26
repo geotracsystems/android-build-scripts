@@ -69,18 +69,7 @@ class HeadVersionFormatter implements VersionFormatter {
 
     @Override
     String print(LibraryVersion version) {
-        return version.major + getGitHash()
-    }
-
-    private String getGitHash() {
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'rev-parse', 'HEAD'
-            standardOutput = stdout
-        }
-
-        //Output will look like: cfd998043fe86f3f1f2320512d6aabb51bfb5059
-        return stdout.toString().trim()
+        return version.toString() + "-HEAD"
     }
 }
 
@@ -245,8 +234,18 @@ def getDependencyVersion(String semanticVersion) {
     return DependencyVersionFormatter.fromBranch(currentBranch()).print(new LibraryVersion(semanticVersion))
 }
 
+// check it the repo is at the proper commit being one of the following branch:
+// master, develop, release/(version name), feature/(JIRA key)(-optional description)
+def isValidForPublishing() {
+    return true
+}
+
 def getPublishUrl() {
-    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+    if(isValidForPublishing()) {
+        return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+    } else {
+        throw RuntimeException(currentBranch() + " is not valid for publishingå")
+    }
 }
 
 // Export methods by turning them into closures
