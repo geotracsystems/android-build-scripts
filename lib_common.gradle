@@ -235,7 +235,14 @@ def getDependencyVersion(String semanticVersion) {
 }
 
 def getPublishUrl() {
-    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+    switch (BuildType.fromBranch(currentBranch())) {
+        case BuildType.RELEASE:
+            return "http://packages.geotracinternational.com/nexus/repository/maven-releases"
+        case BuildType.BETA:
+            return "http://packages.geotracinternational.com/nexus/repository/maven-snapshots"
+        default:
+            throw new RuntimeException("Do NOT publish the library under developement")
+    }
 }
 
 // Export methods by turning them into closures
