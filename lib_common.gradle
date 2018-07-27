@@ -33,9 +33,11 @@ abstract class LibraryVersionFormatter {
             case BuildType.DEVELOPMENT:
                 switch (branch) {
                     case "develop":
-                        return new DevelopVersionFormatter();
+                        return new DevelopVersionFormatter()
+                    case "HEAD":
+                        return new HeadVersionFormatter()
                     default:
-                        return new FeatureVersionFormatter(branch);
+                        return new FeatureVersionFormatter(branch)
                 }
         }
 
@@ -61,6 +63,14 @@ abstract class DependencyVersionFormatter {
 
 interface VersionFormatter {
     String print(LibraryVersion version)
+}
+
+class HeadVersionFormatter implements VersionFormatter {
+
+    @Override
+    String print(LibraryVersion version) {
+        return version.toString() + "-HEAD"
+    }
 }
 
 class DevelopVersionFormatter implements VersionFormatter {

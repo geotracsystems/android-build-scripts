@@ -8,7 +8,7 @@ repositories {
 
 configurations.all {
     resolutionStrategy {
-        force 'org.codehaus.groovy:groovy-all:2.4.7'
+        force 'org.codehaus.groovy:groovy-all:2.4.12'
     }
 }
 

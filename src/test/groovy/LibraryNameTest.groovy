@@ -232,4 +232,18 @@ class LibraryNameTest extends Specification {
         where:
         baseVersion << ['1', 'MOCOM-353', 'Test.Version', '1.Something.0', '1.2.3.4']
     }
+
+    @Unroll
+    def "Library version is correct for arbitrary commit in HEAD branch: #HEAD"() {
+        given:
+        setVersion('1.2')
+        setBranch('HEAD')
+
+        when:
+        def result = getLibraryVersion()
+
+        then:
+        result.output.trim() == "1.2.0-HEAD"
+    }
+
 }
