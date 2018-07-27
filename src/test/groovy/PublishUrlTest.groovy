@@ -59,15 +59,15 @@ class PublishUrlTest extends Specification {
     }
 
     @Unroll
-    def "Throw runtime exception on any commit of the HEAD branch"() {
+    def "Publish URL is snapshot repository for HEAD branch on build server"() {
         given:
         setBranch("HEAD")
 
         when:
-        getPublishUrl()
+        def result = getPublishUrl()
 
         then:
-        thrown(RuntimeException)
+        result.output.trim() == snapshotRepositoryUrl
     }
 
     @Unroll
