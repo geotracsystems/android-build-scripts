@@ -58,6 +58,17 @@ class PublishUrlTest extends Specification {
         getPublishUrlRunner().buildAndFail()
     }
 
+    def "Publish URL is empty for HEAD branch on build server: #HEAD"() {
+        given:
+        setBranch('HEAD')
+
+        when:
+        def result = getPublishUrl()
+
+        then:
+        result.output.trim() == ''
+    }
+
     @Unroll
     def "Publish URL is snapshot repository for development branch on build server: #branch"() {
         given:
