@@ -59,18 +59,15 @@ class PublishUrlTest extends Specification {
     }
 
     @Unroll
-    def "Publish URL is snapshot repository for development branch on build server: #branch"() {
+    def "Throw runtime exception on any commit of the HEAD branch"() {
         given:
-        setBranch(branch)
+        setBranch("HEAD")
 
         when:
-        def result = getPublishUrl()
+        getPublishUrl()
 
         then:
-        result.output.trim() == snapshotRepositoryUrl
-
-        where:
-        branch << ['develop', 'feature/GAT-123-arbitrary', 'feature/no-key-for-some-reason', 'MOCOM-4343-another', 'something-random']
+        thrown(RuntimeException)
     }
 
     @Unroll
@@ -85,7 +82,7 @@ class PublishUrlTest extends Specification {
         result.output.trim() == snapshotRepositoryUrl
 
         where:
-        branch << ['release/1.0', 'hotfix/2.0.3']
+        branch << ['release/1.0', 'hotfix/2.0.3', 'MOCOM-4343-another', 'something-random', 'develop', 'feature/GAT-123-arbitrary', 'feature/no-key-for-some-reason']
     }
 
     def "Publish URL is release repository for master on build server"() {

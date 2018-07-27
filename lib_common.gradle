@@ -235,7 +235,13 @@ def getDependencyVersion(String semanticVersion) {
 }
 
 def getPublishUrl() {
-    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+    def currentBranch = currentBranch()
+    if(currentBranch == "HEAD") {
+        throw new RuntimeException("Does NOT allow publish in HEAD branch")
+    } else {
+        return "http://packages.geotracinternational.com/nexus/repository/maven-" +
+                ( BuildType.fromBranch(currentBranch) == BuildType.RELEASE ? "releases" : "snapshots")
+    }
 }
 
 // Export methods by turning them into closures
