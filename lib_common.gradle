@@ -235,7 +235,15 @@ def getDependencyVersion(String semanticVersion) {
 }
 
 def getPublishUrl() {
-    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+    def branchName = currentBranch()
+    switch (branchName) {
+        case 'HEAD':
+            // return empty publish URL so that the build will be success but would NOT allow publish
+            return ''
+        default:
+            return "http://packages.geotracinternational.com/nexus/repository/maven-" +
+                    (BuildType.fromBranch(branchName) == BuildType.RELEASE ? "releases" : "snapshots")
+    }
 }
 
 // Export methods by turning them into closures
