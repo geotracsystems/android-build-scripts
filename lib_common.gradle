@@ -32,6 +32,8 @@ abstract class LibraryVersionFormatter {
                 return new BetaVersionFormatter()
             case BuildType.DEVELOPMENT:
                 switch (branch) {
+                    case "HEAD":
+                        return new HeadVersionFormatter()
                     case "develop":
                         return new DevelopVersionFormatter();
                     default:
@@ -61,6 +63,14 @@ abstract class DependencyVersionFormatter {
 
 interface VersionFormatter {
     String print(LibraryVersion version)
+}
+
+class HeadVersionFormatter implements VersionFormatter {
+
+    @Override
+    String print(LibraryVersion version) {
+        return version.toString() + "-HEAD"
+    }
 }
 
 class DevelopVersionFormatter implements VersionFormatter {
@@ -225,7 +235,13 @@ def getDependencyVersion(String semanticVersion) {
 }
 
 def getPublishUrl() {
-    return "http://packages.geotracinternational.com/nexus/repository/maven-" + (isReleaseMode() ? "releases" : "snapshots")
+    def currentBranch = currentBranch()
+    if(currentBranch == "HEAD") {
+        throw new RuntimeException("Does NOT allow publish in HEAD branch")
+    } else {
+        return "http://packages.geotracinternational.com/nexus/repository/maven-" +
+                ( BuildType.fromBranch(currentBranch) == BuildType.RELEASE ? "releases" : "snapshots")
+    }
 }
 
 // Export methods by turning them into closures
