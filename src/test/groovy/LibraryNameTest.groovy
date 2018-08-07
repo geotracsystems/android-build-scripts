@@ -71,8 +71,11 @@ class LibraryNameTest extends Specification {
         result.output.trim() == majorVersion + ".x-develop-SNAPSHOT"
 
         where:
-        baseVersion << ['1.2.3', '1.1', '4.2', '3.2.1']
-        majorVersion << ['1', '1', '4', '3']
+        baseVersion || majorVersion
+        '1.2.3'     || '1'
+        '1.1'       || '1'
+        '4.2'       || '4'
+        '3.2.1'     || '3'
     }
 
     @Unroll
@@ -87,8 +90,10 @@ class LibraryNameTest extends Specification {
         result.output.trim() == jiraKey + "-SNAPSHOT"
 
         where:
-        branch << ['feature/GAT-123-text-that-should-be-cut-off', 'feature/MOCOM-1212-arbitrary', 'feature/GIOCPIIA-1-description']
-        jiraKey << ['GAT-123', 'MOCOM-1212', 'GIOCPIIA-1']
+        branch                                        || jiraKey
+        'feature/GAT-123-text-that-should-be-cut-off' || 'GAT-123'
+        'feature/MOCOM-1212-arbitrary'                || 'MOCOM-1212'
+        'feature/GIOCPIIA-1-description'              || 'GIOCPIIA-1'
     }
 
     @Unroll
@@ -103,8 +108,11 @@ class LibraryNameTest extends Specification {
         result.output.trim() == jiraKey + "-SNAPSHOT"
 
         where:
-        branch << ['feature/gat-123-text', 'feature/MocoM-1212-arbitrary', 'GioCPiiA-1-description', 'ga-9-short']
-        jiraKey << ['GAT-123', 'MOCOM-1212', 'GIOCPIIA-1', 'GA-9']
+        branch                         || jiraKey
+        'feature/gat-123-text'         || 'GAT-123'
+        'feature/MocoM-1212-arbitrary' || 'MOCOM-1212'
+        'GioCPiiA-1-description'       || 'GIOCPIIA-1'
+        'ga-9-short'                   || 'GA-9'
     }
 
     @Unroll
@@ -119,8 +127,10 @@ class LibraryNameTest extends Specification {
         result.output.trim() == jiraKey + "-SNAPSHOT"
 
         where:
-        branch << ['GGG-453-get-rid-of-this', 'GIOCP-123123-something', 'GA-9-short']
-        jiraKey << ['GGG-453', 'GIOCP-123123', 'GA-9']
+        branch                    || jiraKey
+        'GGG-453-get-rid-of-this' || 'GGG-453'
+        'GIOCP-123123-something'  || 'GIOCP-123123'
+        'GA-9-short'              || 'GA-9'
     }
 
     @Unroll

@@ -70,8 +70,11 @@ class LibraryDependencyTest extends Specification {
         result.output.trim() == majorVersion + ".x-develop-SNAPSHOT"
 
         where:
-        baseVersion << ['1.2.3', '1.1', '4.2', '3.2.1']
-        majorVersion << ['1', '1', '4', '3']
+        baseVersion || majorVersion
+        '1.2.3'     || '1'
+        '1.1'       || '1'
+        '4.2'       || '4'
+        '3.2.1'     || '3'
     }
 
     @Unroll
@@ -87,9 +90,11 @@ class LibraryDependencyTest extends Specification {
         result.output.trim() == majorVersion + ".x-develop-SNAPSHOT"
 
         where:
-        branch << ['feature/GAT-123-text-that-should-be-cut-off', 'feature/arbitrary-branch', 'MOCOM-423-amazing-feature', 'quick-fix']
-        baseVersion << ['3.4', '9.4.1', '0.5', '6.2.3']
-        majorVersion << ['3', '9', '0', '6']
+        branch                                        | baseVersion || majorVersion
+        'feature/GAT-123-text-that-should-be-cut-off' | '3.4'       || '3'
+        'feature/arbitrary-branch'                    | '9.4.1'     || '9'
+        'MOCOM-423-amazing-feature'                   | '0.5'       || '0'
+        'quick-fix'                                   | '6.2.3'     || '6'
     }
 
     @Unroll
