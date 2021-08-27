@@ -13,8 +13,8 @@ class PublishUrlTest extends Specification {
     File buildFile
     File serverPropertiesFile
 
-    final String snapshotRepositoryUrl = "http://packages.geotracinternational.com/nexus/repository/maven-snapshots"
-    final String releaseRepositoryUrl = "http://packages.geotracinternational.com/nexus/repository/maven-releases"
+    final String snapshotRepositoryUrl = "https://packages.geotracinternational.com/nexus/repository/maven-snapshots"
+    final String releaseRepositoryUrl = "https://packages.geotracinternational.com/nexus/repository/maven-releases"
 
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
@@ -56,6 +56,17 @@ class PublishUrlTest extends Specification {
 
     def getPublishUrlExpectingFailure() {
         getPublishUrlRunner().buildAndFail()
+    }
+
+    def "Publish URL is empty for HEAD branch on build server: #HEAD"() {
+        given:
+        setBranch('HEAD')
+
+        when:
+        def result = getPublishUrl()
+
+        then:
+        result.output.trim() == ''
     }
 
     @Unroll
