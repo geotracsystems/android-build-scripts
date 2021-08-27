@@ -13,8 +13,8 @@ class PublishUrlTest extends Specification {
     File buildFile
     File serverPropertiesFile
 
-    final String snapshotRepositoryUrl = "http://packages.geotracinternational.com/nexus/repository/maven-snapshots"
-    final String releaseRepositoryUrl = "http://packages.geotracinternational.com/nexus/repository/maven-releases"
+    final String snapshotRepositoryUrl = "https://packages.geotracinternational.com/nexus/repository/maven-snapshots"
+    final String releaseRepositoryUrl = "https://packages.geotracinternational.com/nexus/repository/maven-releases"
 
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
