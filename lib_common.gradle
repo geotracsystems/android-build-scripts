@@ -241,7 +241,7 @@ def getPublishUrl() {
             // return empty publish URL so that the build will be success but would NOT allow publish
             return ''
         default:
-            return "http://packages.geotracinternational.com/nexus/repository/maven-" +
+            return "https://packages.geotracinternational.com/nexus/repository/maven-" +
                     (BuildType.fromBranch(branchName) == BuildType.RELEASE ? "releases" : "snapshots")
     }
 }
